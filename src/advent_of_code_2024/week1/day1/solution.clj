@@ -19,13 +19,8 @@
       (map #(reduce - %))
       (map #(abs %))
       (io/sum)
-      (println)
       )))
 
-(defn count-item-occurrence
-  "count item occurrence in collection"
-  [item coll]
-  (count (filter #(= item %) coll)))
 
 (defn solve-part-2
   "docstring"
@@ -38,16 +33,7 @@
     (->>
       (map #(get rightCollectionFrequencies %1) leftCollection)
       (map vector leftCollection)
-      (println)
-      (map (fn filter (fn some? (nth % 1)) ))
-      (println)
+      (filter #(some? (nth % 1)))
       (map #(reduce * %))
-      ;(io/sum)
-
+      (io/sum)
       )))
-
-(defn -main
-  "docstring"
-  []
-  (solve-part-1 "day1/input.txt")
-  (solve-part-2 "day1/input.txt"))
