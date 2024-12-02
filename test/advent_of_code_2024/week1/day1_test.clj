@@ -1,6 +1,6 @@
-(ns advent-of-code-2024.week1.day1.solution-test
+(ns advent-of-code-2024.week1.day1-test
   (:require [clojure.test :refer :all])
-  (:require [advent-of-code-2024.week1.day1.solution :refer :all]))
+  (:require [advent-of-code-2024.week1.day1 :refer :all]))
 
 (deftest solve-part-1-test
   (testing "part1 with example")
