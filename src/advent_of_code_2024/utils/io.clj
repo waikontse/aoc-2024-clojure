@@ -20,3 +20,8 @@
   "Sum all the values into the coll"
   [coll]
   (reduce + coll))
+
+(defn vec-remove
+  "remove elem in coll"
+  [pos coll]
+  (into (subvec coll 0 pos) (subvec coll (inc pos))))
