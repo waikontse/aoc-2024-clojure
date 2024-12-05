@@ -17,4 +17,4 @@
 
 (deftest solve-part-2-test
   (testing "solution for day 3 part 2")
-  (is (= (solve-part-2 "day3/input.txt") 161)))
+  (is (= (solve-part-2 "day3/input.txt") 83158140)))
