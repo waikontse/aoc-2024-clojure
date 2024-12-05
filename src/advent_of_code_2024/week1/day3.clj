@@ -1,14 +1,37 @@
 (ns advent-of-code-2024.week1.day3
   (:require [advent-of-code-2024.utils.io :as io]))
 
-(defn parse-op
+(defn categorize-op
+  [raw-op]
+  (cond
+    (clojure.string/starts-with? raw-op "mul(") :mul
+    (clojure.string/starts-with? raw-op "do(") :do
+    (clojure.string/starts-with? raw-op "don't(") :don't))
+
+
+(defmulti parse-op categorize-op)
+
+(defmethod parse-op :mul
   [raw-op]
   (let [raw-operands (-> raw-op
                          (clojure.string/replace #"mul\(" "")
                          (clojure.string/replace #"\)" "")
                          (clojure.string/split #","))
         ]
-    {:op "mul" :left (first raw-operands) :right (second raw-operands)}))
+    {:op :mul :left (first raw-operands) :right (second raw-operands)}))
+
+(defmethod parse-op :do
+  [raw-op]
+  {:op :do})
+
+(defmethod parse-op :don't
+  [raw-op]
+  {:op :don't})
+
+(defmethod parse-op :default
+  [args]
+  )
+
 
 (defn parse-line
   [raw-line]
@@ -33,6 +56,7 @@
     ;(println results)
     (reduce + results)))
 
+
 (defn solve-part-2
   "docstring"
   [filename]
@@ -41,9 +65,6 @@
         ; results (map execute-operand parsed-operands)
         ]
     (println parsed-operands)
-
-    ;(println results)
-    ;(reduce + results))
     )
   )
 

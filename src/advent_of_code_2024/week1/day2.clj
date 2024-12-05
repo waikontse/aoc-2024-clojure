@@ -55,7 +55,6 @@
     (->
       (mapv #(io/vec-remove % numbers) (range length))
       (conj numbers))))
-
 (defn is-safe-part2?
   [numbers]
   (let [gens (generate-rows numbers)
