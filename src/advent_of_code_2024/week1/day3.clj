@@ -13,7 +13,8 @@
 (defn parse-line
   [raw-line]
   "return a map of operands eg: {:left <int> :right <int> :op mul}"
-  (let [operands (re-seq #"mul\(\d{1,3},\d{1,3}\)" raw-line)]
+  (let [operands (re-seq #"mul\(\d{1,3},\d{1,3}\)|don't\(\)|do\(\)" raw-line)
+        _ (println operands)]
     (map parse-op operands)))
 
 (defn execute-operand
@@ -35,6 +36,15 @@
 (defn solve-part-2
   "docstring"
   [filename]
-  0)
+  (let [raw-lines (io/read-input "day3/example.txt")
+        parsed-operands (flatten (map parse-line raw-lines))
+        ; results (map execute-operand parsed-operands)
+        ]
+    (println parsed-operands)
+
+    ;(println results)
+    ;(reduce + results))
+    )
+  )
 
 (parse-line "mul(123,123)")
