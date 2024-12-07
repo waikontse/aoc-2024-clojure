@@ -23,35 +23,24 @@
   [xPos yPos board target]
   (let [target-length (count target)
         backwards (board/get-data-left xPos yPos board target-length)
-        ;_ (println "backwards:" backwards)
         forwards (board/get-data-right xPos yPos board target-length)
-        ;_ (println "for:" forwards)
         top (board/get-data-top xPos yPos board target-length)
-        ;_ (println "top:" top)
         bottom (board/get-data-bottom xPos yPos board target-length)
-        ;_ (println "bottom:" bottom)
 
         top-left (board/get-data-top-left xPos yPos board target-length)
-        ;_ (println "top-left:" top-left)
         top-right (board/get-data-top-right xPos yPos board target-length)
-        ;_ (println "top-right:" top-right)
         bottom-left (board/get-data-bottom-left xPos yPos board target-length)
-        ;_ (println "bottom-left:" bottom-left)
         bottom-right (board/get-data-bottom-right xPos yPos board target-length)
-        ;_ (println "bottom-right:" bottom-right)
+
         all-values [backwards forwards top bottom top-left top-right bottom-left bottom-right]
         all-values-str (map #(apply str %) all-values)
-        counted (count (filter true? (map #(is-target? % target) all-values-str)))
-        _ (when (> counted 0)
-            (println "xPos: " xPos "yPos: " yPos "Counted: " counted))
         ]
-    counted))
+    (count (filter true? (map #(is-target? % target) all-values-str)))))
 
 
 (defn solve-part-1
   [filename]
-  (let [raw-lines (io/read-input "day4/example.txt")
-        ;_ (println raw-lines)
+  (let [raw-lines (io/read-input filename)
         filled-board (parse-to-board raw-lines)
         found-target-count (for [yRange (range (:height filled-board))
                                  xRange (range (:width filled-board))]

@@ -5,6 +5,17 @@
   [x y]
   {:width x :height y :board []})
 
+(defn is-within-x-range?
+  [xPos board]
+  (and (>= xPos 0)
+       (< xPos (:width board))))
+
+(defn is-within-y-range?
+  "docstring"
+  [yPos board]
+  (and (>= yPos 0)
+       (< yPos (:height board))))
+
 (defn get-internal-position
   "Calculate the internal position of the board, given X and Y position"
   [xPos yPos board]
@@ -14,7 +25,10 @@
   "Get the item at position X and position Y"
   [xPos yPos board]
   (let [board-data (:board board)]
-    (get board-data (get-internal-position xPos yPos board))))
+    (if (and (is-within-x-range? xPos board)
+             (is-within-y-range? yPos board))
+      (get board-data (get-internal-position xPos yPos board))
+      nil)))
 
 (defn update-board-data
   "docstring"
@@ -28,17 +42,6 @@
                               (:board board)
                               (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
-
-(defn is-within-x-range?
-  [xPos board]
-  (and (>= xPos 0)
-       (< xPos (:width board))))
-
-(defn is-within-y-range?
-  "docstring"
-  [yPos board]
-  (and (>= yPos 0)
-       (< yPos (:height board))))
 
 
 (defn can-get-data-left?
