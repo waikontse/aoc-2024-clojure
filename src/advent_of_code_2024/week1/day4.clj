@@ -19,7 +19,6 @@
   (= target suspect))
 
 (defn can-get-target-at-position?
-  "docstring"
   [xPos yPos board target]
   (let [target-length (count target)
         backwards (board/get-data-left xPos yPos board target-length)
@@ -44,41 +43,35 @@
         filled-board (parse-to-board raw-lines)
         found-target-count (for [yRange (range (:height filled-board))
                                  xRange (range (:width filled-board))]
-                             (can-get-target-at-position? xRange yRange filled-board "XMAS"))
+                             (can-get-target-at-position? xRange yRange filled-board "XMAS"))]
+    (reduce + found-target-count)))
+
+
+(defn is-target-2?
+  [target suspect]
+  (or (= target suspect)
+      (= (clojure.string/reverse target) suspect)))
+
+(defn can-get-target-at-position-2?
+  [xPos yPos board target]
+  (let [target-length (count target)
+        bottom-left (board/get-data-bottom-left (+ xPos 2) yPos board target-length)
+        bottom-right (board/get-data-bottom-right xPos yPos board target-length)
+        all-values [bottom-left bottom-right]
+        all-values-str (map #(apply str %) all-values)
+        left-is-mas (is-target-2? target (first all-values-str))
+        right-is-mas (is-target-2? target (second all-values-str))
         ]
-    (reduce + found-target-count))
-  )
+    (if (and left-is-mas right-is-mas)
+      1
+      0)))
 
 (defn solve-part-2
   [filename]
-  0)
-
-(seq (char-array "hello"))
-
-(def names ["batman" "superman" "hulk"])
-
-(->>
-  (map #(seq (char-array %1)) names)
-  (flatten))
-
-
-(def my-new-board
-  (let [raw-lines (io/read-input "day4/example1.txt")]
-    (parse-to-board raw-lines)))
-
-(board/get-data-right 0 0 my-new-board 5)
-(board/get-data-left 5 0 my-new-board 5)
-(board/get-data-bottom 0 0 my-new-board 5)
-(board/get-data-top 1 5 my-new-board 5)
-
-(board/get-data-top-left 9 9 my-new-board 5)
-(board/get-data-top-right 0 5 my-new-board 5)
-(board/get-data-bottom-left 5 5 my-new-board 5)
-(board/get-data-bottom-right 0 0 my-new-board 5)
-
-(can-get-target-at-position? 5 0 my-new-board "XMAS")
-
-
-(let [fetched (mapv #(board/get-pos (+ 0 %) 0 my-new-board) (range 5))
-      ]
-  fetched)
+  (let [raw-lines (io/read-input filename)
+        filled-board (parse-to-board raw-lines)
+        found-target-count (for [xRange (range (:width filled-board))
+                                 yRange (range (:height filled-board))]
+                             (can-get-target-at-position-2? xRange yRange filled-board "MAS"))
+        ]
+    (reduce + found-target-count)))

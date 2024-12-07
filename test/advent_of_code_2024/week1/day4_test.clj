@@ -15,4 +15,4 @@
     (testing "with sample data"
       (is (= 9 (solve-part-2 "day4/example.txt"))))
     (testing "with real data"
-      (is (= (solve-part-2 "day4/input.txt") 2575)))))
+      (is (= 2041 (solve-part-2 "day4/input.txt"))))))
