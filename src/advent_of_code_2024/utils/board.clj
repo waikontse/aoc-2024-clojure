@@ -29,42 +29,111 @@
                               (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
 
-(defn get-data-back
+(defn is-within-x-range?
+  [xPos board]
+  (and (>= xPos 0)
+       (< xPos (:width board))))
+
+(defn is-within-y-range?
+  "docstring"
+  [yPos board]
+  (and (>= yPos 0)
+       (< yPos (:height board))))
+
+
+(defn can-get-data-left?
+  "docstring"
+  [xPos board length]
+  (and (>= (- xPos length) 0)
+       (is-within-x-range? xPos board)))
+
+(defn get-data-left
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos (- xPos %) yPos board) (range length))]
+    fetched-values))
 
-(defn get-data-front
+
+(defn can-get-data-right?
+  [xPos board length]
+  (and (< (+ xPos length) (:width board))
+       (is-within-x-range? xPos board)))
+
+(defn get-data-right
   "docstring"
-  [xPos yPos board lenght]
-  nil)
+  [xPos yPos board length]
+  (let [fetched-values (mapv #(get-pos (+ xPos %) yPos board) (range length))]
+    fetched-values))
+
+
+(defn can-get-data-top?
+  [yPos board length]
+  (and (>= (- yPos length) 0)
+       (is-within-y-range? yPos board)))
 
 (defn get-data-top
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos xPos (- yPos %) board) (range length))]
+    fetched-values))
+
+
+(defn can-get-data-bottom?
+  [yPos board length]
+  (and (< (+ yPos length) (:height board))
+       (is-within-y-range? yPos board)))
 
 (defn get-data-bottom
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos xPos (+ yPos %) board) (range length))]
+    fetched-values))
+
+
+
+(defn can-get-data-top-left
+  [xPos yPos board length]
+  (and (can-get-data-top? yPos board length)
+       (can-get-data-left? xPos board length)))
 
 (defn get-data-top-left
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos (- xPos %) (- yPos %) board) (range length))]
+    fetched-values))
+
+
+(defn can-get-data-top-right
+  [xPos yPos board length]
+  (and (can-get-data-top? yPos board length)
+       (can-get-data-right? xPos board length)))
 
 (defn get-data-top-right
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos (+ xPos %) (- yPos %) board) (range length))]
+    fetched-values))
+
+(defn can-get-data-bottom-left?
+  [xPos yPos board length]
+  (and (can-get-data-bottom? yPos board length)
+       (can-get-data-left? xPos board length)))
+
 
 (defn get-data-bottom-left
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos (- xPos %) (+ yPos %) board) (range length))]
+    fetched-values))
+
+
+(defn can-get-data-bottom-right?
+  [xPos yPos board length]
+  (and (can-get-data-bottom? yPos board length)
+       (can-get-data-right? xPos board length)))
 
 (defn get-data-bottom-right
   "docstring"
   [xPos yPos board length]
-  nil)
+  (let [fetched-values (mapv #(get-pos (+ xPos %) (+ yPos %) board) (range length))]
+    fetched-values))
