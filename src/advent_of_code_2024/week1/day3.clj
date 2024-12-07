@@ -19,21 +19,20 @@
     {:op :mul :left (first raw-operands) :right (second raw-operands)}))
 
 (defmethod parse-op :do
-  [raw-op]
+  [_]
   {:op :do})
 
 (defmethod parse-op :don't
-  [raw-op]
+  [_]
   {:op :don't})
 
 (defmethod parse-op :default
-  [args]
-  )
+  [_])
 
 
 (defn parse-line
-  [raw-line]
   "return a map of operands eg: {:left <int> :right <int> :op mul}"
+  [raw-line]
   (let [operands (re-seq #"mul\(\d{1,3},\d{1,3}\)|don't\(\)|do\(\)" raw-line)]
     (map parse-op operands)))
 
@@ -52,20 +51,22 @@
     (reduce + results)))
 
 (defn filter-operands
-  ([operands] (filter-operands operands true []))
-  ([operands is-enabled acc]
-   (let [current (first operands)
-         is-do? (= (:op current) :do)
-         is-don't? (= (:op current) :don't)
-         is-mul? (= (:op current) :mul)]
-     (cond
-       (empty? operands) acc
-       (true? is-do?) (filter-operands (rest operands) true acc)
-       (true? is-don't?) (filter-operands (rest operands) false acc)
-       (and is-enabled (true? is-mul?)) (filter-operands (rest operands) true (conj acc current))
-       (and (not is-enabled) (true? is-mul?)) (filter-operands (rest operands) false acc)))))
+  [operands]
+  (loop [operands operands
+         is-enabled? true
+         acc []]
+    (let [current (first operands)
+          is-do? (= (:op current) :do)
+          is-don't? (= (:op current) :don't)
+          is-mul? (= (:op current) :mul)]
+      (cond
+        (empty? operands) acc
+        (true? is-do?) (recur (rest operands) true acc)
+        (true? is-don't?) (recur (rest operands) false acc)
+        (and is-enabled? (true? is-mul?)) (recur (rest operands) true (conj acc current))
+        (and (not is-enabled?) (true? is-mul?)) (recur (rest operands) false acc)))))
 
-(defn solve-part-2
+  (defn solve-part-2
   "docstring"
   [filename]
   (let [raw-lines (io/read-input filename)
