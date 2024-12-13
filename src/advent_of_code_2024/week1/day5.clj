@@ -18,44 +18,32 @@
 (defn parse-line-to-update
   "docstring"
   [raw-line]
-  (let [splitted (clojure.string/split raw-line #",")
-        ;_ (println splitted)
-        ]
-    (map #(Integer/parseInt %) splitted)
-    )
-  )
+  (let [splitted (clojure.string/split raw-line #",")]
+    (map #(Integer/parseInt %) splitted)))
 
 (defn parse-lines-to-updates
   [raw-lines]
   (let [line-break (.indexOf raw-lines "")
         page-update-lines (subvec raw-lines (inc line-break))
-        ;_ (println page-update-lines)
-        parsed-update-lines (map #(parse-line-to-update %) page-update-lines)
-        ;_ (println parsed-update-lines)
-        ]
+        parsed-update-lines (map #(parse-line-to-update %) page-update-lines)]
     parsed-update-lines))
 
 (defn is-single-update-rule-correct?
-  "docstring"
   [list-of-page-ordering pages-that-comes-after]
   (let [set-of-page-ordering (set (map :right list-of-page-ordering))
-        contains-in-set (map #(contains? set-of-page-ordering %) pages-that-comes-after)
-        ]
-    (every? identity contains-in-set))
-  )
+        contains-in-set (map #(contains? set-of-page-ordering %) pages-that-comes-after)]
+    (every? identity contains-in-set)))
 
 (defn is-update-rule-correct?
   "docstring"
   [map-of-pages page-number-ordering]
   (let [page-ordering-correct (loop [page-orderings page-number-ordering
-                                     acc []
-                                     ]
+                                     acc []]
                                 (if (empty? page-orderings)
                                   acc
                                   (recur (rest page-orderings)
                                          (conj acc (is-single-update-rule-correct? (get map-of-pages (first page-orderings)) (rest page-orderings))))
-                                  ))
-        ]
+                                  ))]
     (every? identity page-ordering-correct))
   )
 
@@ -67,8 +55,7 @@
       (empty? page-number-orderings) acc
       (f (is-update-rule-correct? map-of-pages (first page-number-orderings))) (recur (conj acc (first page-number-orderings))
                                                                                           (rest page-number-orderings))
-      :else (recur acc (rest page-number-orderings))
-      )))
+      :else (recur acc (rest page-number-orderings)))))
 
 (defn get-middle-number
   [numbers]
@@ -80,43 +67,45 @@
   (let [raw-lines (io/read-input filename)
         parsed-pages (parse-lines-to-page-ordering raw-lines)
         parsed-updates (parse-lines-to-updates raw-lines)
-        _ (println parsed-pages)
-        _ (println parsed-updates)
         page-ordering (group-by :left parsed-pages)
-        result (is-update-rule-correct? page-ordering (first parsed-updates))
-        _ (println result)
-        all-correct-updates (map #(is-update-rule-correct? page-ordering %) parsed-updates)
-        _ (println "all corrected: " all-correct-updates)
-        all-correct-updates-2 (are-all-update-rules-correct? page-ordering parsed-updates true?)
-        _ (println all-correct-updates-2)
-        all-middle-numbers (map #(get-middle-number %) all-correct-updates-2)
-        _ (println all-middle-numbers)
-        ]
+        all-correct-updates (are-all-update-rules-correct? page-ordering parsed-updates true?)
+        all-middle-numbers (map #(get-middle-number %) all-correct-updates)]
     (reduce + all-middle-numbers)))
+
+
+(defn determine-first-correct-order
+  [map-of-pages page-number-orderings]
+  ; Loop through all the number, until we find the number
+  ; that all the numbers that follows are in order.
+  (loop [currentIndex 0]
+    (let [currentPageValue (nth page-number-orderings currentIndex )
+          follow-up-pages (io/vec-remove currentIndex page-number-orderings)
+          isOrderCorrect (is-single-update-rule-correct? (get map-of-pages  currentPageValue) follow-up-pages)
+          ]
+      (cond
+        (true? isOrderCorrect) currentPageValue
+        (= 0 (count page-number-orderings)) currentPageValue
+        :else (recur (inc currentIndex))))))
+
+(defn re-arrange-page-updates
+  [map-of-pages page-number-orderings]
+  (loop [page-number-orderings page-number-orderings
+         length (count page-number-orderings)
+         acc []]
+    (let [target (when (> length 0) (determine-first-correct-order map-of-pages page-number-orderings))]
+      (if (= length 0)
+        acc
+        (recur (vec (remove #(= target %) page-number-orderings)) (dec length) (conj acc target))))))
+
 
 (defn solve-part-2
   [filename]
-  (let [raw-lines (io/read-input "day5/example.txt")
+  (let [raw-lines (io/read-input filename)
         parsed-pages (parse-lines-to-page-ordering raw-lines)
         parsed-updates (parse-lines-to-updates raw-lines)
-        _ (println parsed-pages)
-        _ (println parsed-updates)
         page-ordering (group-by :left parsed-pages)
-        result (is-update-rule-correct? page-ordering (first parsed-updates))
-        _ (println result)
-        all-correct-updates (map #(is-update-rule-correct? page-ordering %) parsed-updates)
-        _ (println "all corrected: " all-correct-updates)
-        all-correct-updates-2 (are-all-update-rules-correct? page-ordering parsed-updates false?)
-        _ (println all-correct-updates-2)
-        all-middle-numbers (map #(get-middle-number %) all-correct-updates-2)
-        _ (println all-middle-numbers)
+        all-correct-updates (are-all-update-rules-correct? page-ordering parsed-updates false?)
+        re-arranged-faulty-numbers (map #(re-arrange-page-updates page-ordering (vec %)) all-correct-updates)
+        all-middle-numbers (map #(get-middle-number %) re-arranged-faulty-numbers)
         ]
-    (reduce + all-middle-numbers))
-  )
-
-
-(reduce (fn [acc item]
-          (println "received item: " item)
-          (conj acc item))
-        []
-        ["abdc" "ab" "c"])
+    (reduce + all-middle-numbers)))
