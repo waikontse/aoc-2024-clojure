@@ -10,6 +10,15 @@
   [board current-position]
   (board/set-pos (:xPos current-position) (:yPos current-position) board marked))
 
+(defn determine-next-position
+  "docstring"
+  [current-position direction]
+  (let [new-x-pos (cond
+                    (= :WEST direction) (dec (:xPos current-position))
+                    )
+        new-y-pos 0]
+    {:xPos new-x-pos :yPos new-y-pos}))
+
 (defn can-move?
   "docstring"
   [board current-position direction]
@@ -17,6 +26,7 @@
         new-y-pos 0
         is-off-board (board/is-off-board? new-x-pos new-y-pos board)]
     (cond
+      (true? is-off-board) false
       (= direction :NORTH)
       (= direction :SOUTH)
       (= direction :WEST)
