@@ -2,18 +2,6 @@
   (:require [advent-of-code-2024.utils.board :as board]
             [advent-of-code-2024.utils.io :as io]))
 
-(defn parse-to-board
-  [raw-lines]
-  (let [flattened-data (->>
-                         (map #(vec (char-array %1)) raw-lines)
-                         (flatten)
-                         (vec))
-        width (count (first raw-lines))
-        height (count raw-lines)
-        empty-board (board/new width height)
-        ]
-    (board/update-board-data empty-board flattened-data)))
-
 (defn is-target?
   [target suspect]
   (= target suspect))
@@ -40,7 +28,7 @@
 (defn solve-part-1
   [filename]
   (let [raw-lines (io/read-input filename)
-        filled-board (parse-to-board raw-lines)
+        filled-board (board/parse-to-board raw-lines)
         found-target-count (for [yRange (range (:height filled-board))
                                  xRange (range (:width filled-board))]
                              (can-get-target-at-position? xRange yRange filled-board "XMAS"))]
@@ -69,7 +57,7 @@
 (defn solve-part-2
   [filename]
   (let [raw-lines (io/read-input filename)
-        filled-board (parse-to-board raw-lines)
+        filled-board (board/parse-to-board raw-lines)
         found-target-count (for [xRange (range (:width filled-board))
                                  yRange (range (:height filled-board))]
                              (can-get-target-at-position-2? xRange yRange filled-board "MAS"))

@@ -16,6 +16,16 @@
   (and (>= yPos 0)
        (< yPos (:height board))))
 
+(defn is-off-board?
+  "docstring"
+  [xPos yPos board]
+  (cond
+    (< xPos 0) true
+    (< yPos 0) true
+    (>= xPos (:width board)) true
+    (>= yPos (:height board)) true
+    :else false))
+
 (defn get-internal-position
   "Calculate the internal position of the board, given X and Y position"
   [xPos yPos board]
@@ -43,6 +53,17 @@
                               (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
 
+(defn parse-to-board
+  [raw-lines]
+  (let [flattened-data (->>
+                         (map #(vec (char-array %1)) raw-lines)
+                         (flatten)
+                         (vec))
+        width (count (first raw-lines))
+        height (count raw-lines)
+        empty-board (advent-of-code-2024.utils.board/new width height)
+        ]
+    (update-board-data empty-board flattened-data)))
 
 (defn can-get-data-left?
   "docstring"
@@ -91,8 +112,6 @@
   [xPos yPos board length]
   (let [fetched-values (mapv #(get-pos xPos (+ yPos %) board) (range length))]
     fetched-values))
-
-
 
 (defn can-get-data-top-left
   [xPos yPos board length]
