@@ -159,3 +159,9 @@
   [xPos yPos board length]
   (let [fetched-values (mapv #(get-pos (+ xPos %) (+ yPos %) board) (range length))]
     fetched-values))
+
+(defn print-board
+  "docstring"
+  [board]
+  (let [rows (partition (:width board) (:board board))]
+    (dorun (map #(apply println %) rows))))

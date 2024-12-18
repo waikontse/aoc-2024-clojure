@@ -72,7 +72,7 @@
          current-board board
          visited #{}]
     (let [
-          _ (println "makinng a move: " current-position direction)
+          ;_ (println "makinng a move: " current-position direction)
           can-move (can-move? current-position current-board direction)
           ;is-off-board (board/is-off-board? (:x-pos current-position) (:y-pos current-position) current-board)
           current-next-position (determine-next-position current-position direction)
@@ -82,7 +82,7 @@
           has-looped (has-looped? visited current-position direction)
           ]
       (cond
-        (true? has-looped) 1
+        (true? has-looped) 1;[1 current-position newly-marked-board]
         (true? can-move) (recur (determine-next-position current-position direction)
                                 direction
                                 newly-marked-board
@@ -109,14 +109,37 @@
         ]
    total-marked))
 
+
+(defn generate-obstacles
+  "Generate a sequence of position where a new obstacle can be placed"
+  [board starting-position]
+  (let [positions-for-obstacle (for [x-range (range (:width board))
+                                     y-range (range (:height board))]
+                                 (when (not= {:x-pos x-range :y-pos y-range} starting-position)
+                                   {:x-pos x-range :y-pos y-range}))
+        ]
+    (filter some? positions-for-obstacle)))
+
 (defn solve-part-2
   "docstring"
   [filename]
-  (let [raw-lines (io/read-input filename)
+  (let [raw-lines (io/read-input "day6/example.txt")
         board (board/parse-to-board raw-lines)
         ;_ (println board)
         start-pos (find-starter board starter)
-        new-board-data (make-moves-until-stopped start-pos board)
+        obstacle-locations (generate-obstacles board start-pos)
+        _ (println "combintions: " (count obstacle-locations))
+        new-board-data (->> (map #(make-moves-until-stopped start-pos (move-and-mark % board obstacle)) obstacle-locations)
+                            (filter number?))
+        ;new-board-data (make-moves-until-stopped start-pos board)
         _ (println new-board-data)
+        ;_ (board/print-board (nth new-board-data 2))
+        ;loops (count new-board-data)
         ]
-    0))
+    123)
+  )
+
+(reduce (fn [acc item]
+          (conj acc (inc item)))
+        []
+        [1 2 3 4 5])
