@@ -40,22 +40,27 @@
   [current-position board direction]
   (let [new-position (determine-next-position current-position direction)
         is-off-board (board/is-off-board? (:x-pos new-position) (:y-pos new-position) board)
-        is-obstacle (is-obstacle? board new-position obstacle)
-        ;_ (println "can-move?: " new-position direction "is-off-board: "is-off-board "is-obstacle" is-obstacle)
-        ]
+        is-obstacle (is-obstacle? board new-position obstacle)]
     (cond
       (true? is-off-board) false
       (true? is-obstacle) false
       :else true)))
 
 (defn get-next-direction-if-blocked
-  [current-direction]
-  (cond
-    (= current-direction :NORTH) :EAST
-    (= current-direction :EAST) :SOUTH
-    (= current-direction :SOUTH) :WEST
-    (= current-direction :WEST) :NORTH
-    :else (ex-info "this is unexpected" {})))
+  [current-direction current-position board]
+  (let [next-direction (cond
+                         (= current-direction :NORTH) :EAST
+                         (= current-direction :EAST) :SOUTH
+                         (= current-direction :SOUTH) :WEST
+                         (= current-direction :WEST) :NORTH
+                         :else (ex-info "this is unexpected" {}))
+        next-position (determine-next-position current-position next-direction)
+        is-blocked (is-obstacle? board next-position obstacle)]
+    (if (false? is-blocked)
+      next-direction
+      (get-next-direction-if-blocked next-direction current-position board))
+    )
+  )
 
 (defn move-and-mark
   [new-position board marked]
@@ -71,44 +76,32 @@
          direction :NORTH
          current-board board
          visited #{}]
-    (let [
-          ;_ (println "makinng a move: " current-position direction)
-          can-move (can-move? current-position current-board direction)
-          ;is-off-board (board/is-off-board? (:x-pos current-position) (:y-pos current-position) current-board)
+    (let [can-move (can-move? current-position current-board direction)
           current-next-position (determine-next-position current-position direction)
           is-blocked (is-obstacle? current-board current-next-position obstacle)
           newly-marked-board (move-and-mark current-position current-board marked)
-          ;_ (println "bools: " can-move is-off-board is-blocked)
-          has-looped (has-looped? visited current-position direction)
-          ]
+          has-looped (has-looped? visited current-position direction)]
       (cond
-        (true? has-looped) 1;[1 current-position newly-marked-board]
+        (true? has-looped) 1
         (true? can-move) (recur (determine-next-position current-position direction)
                                 direction
                                 newly-marked-board
                                 (conj visited (conj current-position {:direction direction})))
-        (true? is-blocked) (recur (determine-next-position current-position (get-next-direction-if-blocked direction))
-                                  (get-next-direction-if-blocked direction)
+        (true? is-blocked) (recur (determine-next-position current-position
+                                                           (get-next-direction-if-blocked direction current-position board))
+                                  (get-next-direction-if-blocked direction current-position board)
                                   newly-marked-board
                                   (conj visited (conj current-position {:direction direction})))
-        :else newly-marked-board)
-      )
-    )
-  )
+        :else newly-marked-board))))
 
 (defn solve-part-1
-  "docstring"
   [filename]
   (let [raw-lines (io/read-input filename)
         board (board/parse-to-board raw-lines)
-        _ (println board)
         start-pos (find-starter board starter)
-        _ (println "starting pos: " start-pos)
         new-board-data (make-moves-until-stopped start-pos board)
-        total-marked (count (filter #(= marked %) (:board new-board-data)))
-        ]
+        total-marked (count (filter #(= marked %) (:board new-board-data)))]
    total-marked))
-
 
 (defn generate-obstacles
   "Generate a sequence of position where a new obstacle can be placed"
@@ -121,25 +114,11 @@
     (filter some? positions-for-obstacle)))
 
 (defn solve-part-2
-  "docstring"
   [filename]
-  (let [raw-lines (io/read-input "day6/example.txt")
+  (let [raw-lines (io/read-input filename)
         board (board/parse-to-board raw-lines)
-        ;_ (println board)
         start-pos (find-starter board starter)
         obstacle-locations (generate-obstacles board start-pos)
-        _ (println "combintions: " (count obstacle-locations))
         new-board-data (->> (map #(make-moves-until-stopped start-pos (move-and-mark % board obstacle)) obstacle-locations)
-                            (filter number?))
-        ;new-board-data (make-moves-until-stopped start-pos board)
-        _ (println new-board-data)
-        ;_ (board/print-board (nth new-board-data 2))
-        ;loops (count new-board-data)
-        ]
-    123)
-  )
-
-(reduce (fn [acc item]
-          (conj acc (inc item)))
-        []
-        [1 2 3 4 5])
+                            (filter number?))]
+    (count new-board-data)))

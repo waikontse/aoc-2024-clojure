@@ -14,7 +14,7 @@
 (defn str->int
   "Convert a string to integer"
   [str]
-  (Integer/parseInt str))
+  (Long/parseLong str))
 
 (defn sum
   "Sum all the values into the coll"
