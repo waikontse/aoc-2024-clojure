@@ -33,7 +33,41 @@
             ]
         (recur updated-stones (dec rounds))))))
 
+(defn contains-in-seq?
+  [target coll]
+  ;(println "contain-in-seq coll?" coll)
+  (let [counts (count (filter #(= target %) coll))
+        ]
+    counts))
 
+(defn contains-seq?
+  [sequence coll]
+  ;(println "coll" coll)
+  (let [counts (pmap #(= sequence %) coll)
+        true-counts (count (filter true? counts))]
+    true-counts)
+  )
+
+(let [stones (->> (range 0 40)
+                  (map #(move-stones [2024] %)))
+      ;counts (->> stones
+      ;            (pmap #(partition 4 1 %))
+      ;            (pmap #(contains-seq? '(4048 1 4048 8096) %))
+      ;            ;(pmap #(= [4048 1 4048 8096] %))
+      ;            ;(filter true?)
+      ;            ;(count)
+      ;            )
+      ;_ (println counts)
+      _ (doall (map #(println (contains-in-seq? 2024 %) (count %)) stones))
+      ])
+
+(def memoized-move-stones (memoize move-stones))
+
+(def list-of-17-25 (memoized-move-stones [17] 25))
+(println list-of-17-25)
+(->> (pmap #(memoized-move-stones [%] 5) list-of-17-25)
+     (pmap count)
+     (reduce +))
 
 (defn solve-part-1
   [filename]
@@ -53,3 +87,17 @@
   "docstring"
   [arglist]
   0)
+
+(let [raw-lines (io/read-input "day11/input.txt")
+      _ (println "raw line:" raw-lines)
+      splitted-lines (clojure.string/split (first raw-lines) #" ")
+      _ (println "splitted" splitted-lines)
+      parsed-lines (->> splitted-lines
+                        (map #(io/str->int %)))
+      memoized-move-stones (memoize move-stones)
+      pebbles-round-1 (memoized-move-stones parsed-lines 25)
+      pebbles-round-2 (->>
+                        (pmap #(memoized-move-stones [%] 3) pebbles-round-1)
+                        (flatten))
+      ]
+  (count pebbles-round-2))

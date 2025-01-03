@@ -26,6 +26,11 @@
     (>= yPos (:height board)) true
     :else false))
 
+(defn is-on-board?
+  "docstring"
+  [x-pos y-pos board]
+  (not (is-off-board? x-pos y-pos board)))
+
 (defn get-internal-position
   "Calculate the internal position of the board, given X and Y position"
   [xPos yPos board]
