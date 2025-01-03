@@ -6,13 +6,13 @@
   (testing "Solve part 1 using example data"
     (is (= 14 (solve-part-1 "day8/example.txt"))))
   (testing "Solve part 1 using input data"
-    (is (= 1620690235709 (solve-part-1 "day8/input.txt"))))
+    (is (= 381 (solve-part-1 "day8/input.txt"))))
   )
 
 
 (deftest solve-part-2-test
   (testing "Solve part 2 using example data"
-    (is (= 11387 (solve-part-2 "day8/example.txt"))))
+    (is (= 34 (solve-part-2 "day8/example.txt"))))
   (testing "Solve part 2 using input data"
-    (is (= 145397611075341 (solve-part-2 "day8/input.txt"))))
+    (is (= 1184 (solve-part-2 "day8/input.txt"))))
   )
