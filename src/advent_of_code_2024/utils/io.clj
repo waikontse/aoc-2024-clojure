@@ -25,3 +25,12 @@
   "remove elem in coll"
   [pos coll]
   (into (subvec coll 0 pos) (subvec coll (inc pos))))
+
+(defn swap-vec
+  "swap the values of a vector between 2 indexs"
+  [coll idx1 idx2]
+  (let [val-1 (get coll idx1)
+        val-2 (get coll idx2)]
+    (-> coll
+        (assoc idx1 val-2)
+        (assoc idx2 val-1))))

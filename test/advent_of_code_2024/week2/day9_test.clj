@@ -8,13 +8,13 @@
   (testing "Solve part 1 using example data"
     (is (= 1928 (solve-part-1 (str day "/example.txt")))))
   (testing "Solve part 1 using input data"
-    (is (= 381 (solve-part-1 (str day "/input.txt"))))))
+    (is (= 381 (solve-part-1 (str day "/example.txt"))))))
 
 
 (deftest solve-part-2-test
   (testing "Solve part 2 using example data"
-    (is (= 34 (solve-part-2 (str day "/example.txt")))))
+    (is (= 2858 (solve-part-2 (str day "/example.txt")))))
   (testing "Solve part 2 using input data"
-    (is (= 1184 (solve-part-2 (str day "/input.txt"))))))
+    (is (= 1184 (solve-part-2 (str day "/example.txt"))))))
 
 
