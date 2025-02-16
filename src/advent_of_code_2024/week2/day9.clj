@@ -90,14 +90,39 @@
                                 compacted-disk-map)]
     (reduce + multiplied)))
 
+
+;;
+;; Checksum for the revised algorithm
+;;
+(defn checksum-file
+  "make checksum from a file description"
+  [file-description startIdx]
+  (let [file-range (range startIdx (:length file-description))
+        val (:symbol file-description)
+        ]
+    (* (reduce + file-range) val)))
+
+(defn checksum-compacted-space
+  [space-description startIdx]
+  (let [space-range (range startIdx (+ startIdx (:length space-description)))
+        exploded-chars (seq (:value space-description))
+        zipped (map vector space-range exploded-chars)
+        ]
+    (->> zipped
+         (map #(* (first %) (Character/getNumericValue (second %))))
+         (reduce +))))
+
+(checksum-file {:symbol 9, :length 4} 0)
+(checksum-compacted-space {:symbol \. :value "999" :length 3} 2)
+
 (defn solve-part-1
   "docstring"
   [filename]
-  (let [raw-line (first (io/read-input "day9/example.txt"))
+  (let [raw-line (first (io/read-input "day9/input.txt"))
         expanded-raw-disk (expand raw-line)
         total-free-space (calc-free-spaces raw-line)
         compacted (compact-fully expanded-raw-disk total-free-space)
-        ;_ (println compacted)
+                                        ;_ (println compacted)
         ]
     (checksum compacted))
   )
@@ -158,11 +183,15 @@
   [filename]
   (let [raw-line (first (io/read-input "day9/example.txt"))
         expanded-raw-disk (preprocess-raw-map raw-line)
-        ;compacted (compact-fully expanded-raw-disk total-free-space)
+                                        ;compacted (compact-fully expanded-raw-disk total-free-space)
         _ (println (split-expanded expanded-raw-disk))
         _ (println "raw expanded")
+        <<<<<<< Updated upstream
         _ (println expanded-raw-disk)
         _ (pp/pprint (split-processed-map expanded-raw-disk))
+        =======
+        _ (pp/pprint expanded-raw-disk)
+        >>>>>>> Stashed changes
         ]
     0)
   )
