@@ -57,23 +57,62 @@
 (checksum-compacted-space {:symbol \. :value "999" :length 3} 2)
 
 
-(defn can-fully-fill?
-  [file freespace]
-  (<= (:length file) (:length freespace)))
+(defn determine-next-free-space-node
+  [disk-map start-free-space-idx file-length]
+  (loop [free-space-idx start-free-space-idx
+         total-free-space 0]
+    (if (>= total-free-space file-length)
+      free-space-idx
+      (recur (+ free-space-idx 2) (+ total-free-space (:rest (get disk-map free-space-idx))))))
+  )
+
+(defn fill-space
+  [disk-map free-space-id data]
+  (let [free-space-val (get-in disk-map [:free-spaces free-space-id :val])
+        new-free-space-val (conj free-space-val data)
+        new-rest (- (get-in disk-map [:free-spaces free-space-id :rest]) (count data))
+        ]
+    (->
+     (assoc-in disk-map [:free-spaces free-space-id :val] new-free-space-val)
+     (assoc-in disk-map [:free-spaces free-space-id :rest] new-rest)))
+  )
+
+(defn fill-spaces-upto
+  [disk-map free-space-from free-space-to file]
+  (loop [updated-map disk-map
+         current-free-space-idx free-space-from
+         rest-data-to-fill file
+         ]
+    (let [free-space-length-for-index (get-in updated-map [:free-spaces current-free-space-idx :rest])
+          data-to-fill (vec (take free-space-length-for-index file))
+          ]
+      (if (> current-free-space-idx free-space-to)
+        disk-map
+        (recur (fill-space updated-map current-free-space-idx data-to-fill)
+               (+ current-free-space-idx 2)
+               (drop free-space-length-for-index file)))
+      )
+    )
+  )
+
 
 (defn compact-disk-map
   "With a map of {:files n :free-spaces x}"
   ([disk-map]
-   (compact-disk-map 1 ""))
-  ([disk-map free-space-idx rest]
+   (compact-disk-map 1))
+  ([disk-map free-space-idx]
    (let [files-length (count (:files disk-map))
          file-index (* 2 files-length)
          ]
      (if (<= file-index free-space-idx)
        disk-map
-       (recur )
-       ;; else, fill in the free-space)
-     ;; stop condition
+       (let [current-file-to-compact (get-in disk-map [:files file-index])
+             file-length (:length current-file-to-compact)
+             data-to-be-filled (apply str (repeat file-length (:symbol current-file-to-compact)))
+             last-free-space-index (determine-next-free-space-node disk-map free-space-idx file-length)
+             filled-disk-map (fill-spaces-upto disk-map free-space-idx last-free-space-index data-to-be-filled)
+             ]
+         (recur (dissoc filled-disk-map file-index) last-free-space-index))
        )
      )
    )
@@ -123,8 +162,10 @@
         data (->> expanded-raw-disk
                   split-processed-map
                   ;; TODO implement compaction
-                  expand-freespace-items
-                  ;; TODO implement check summing)
+                  ;; expand-freespace-items
+                  ;; TODO implement check summing
+                  combine-files-and-freespace
+                  )
         _ (pp/pprint data)
         ]
     0)
