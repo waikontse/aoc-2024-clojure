@@ -11,10 +11,27 @@
   (with-open [rdr (clojure.java.io/reader (append-path filename))]
     (into [] (line-seq rdr))))
 
+(defn char->str
+  "convert a Character to string"
+  [char]
+  (str char))
+
+(defn chars->strs
+  "Converts a collection of characters to strings"
+  [coll]
+  (map #(char->str %) coll))
+
+
 (defn str->int
   "Convert a string to integer"
   [str]
   (Long/parseLong str))
+
+(defn strs->ints
+  "Convert a collection of strings to longs"
+  [coll]
+  (map #(str->int %) coll))
+
 
 (defn sum
   "Sum all the values into the coll"

@@ -1,7 +1,6 @@
 (ns advent-of-code-2024.week2.day9
   (:require [advent-of-code-2024.utils.io :as io]
-            [clojure.pprint :as pp])
-  )
+            [clojure.pprint :as pp]))
 
 (defn get-symbol-for-index
   [index]
@@ -9,17 +8,14 @@
     (/ index 2)
     \.))
 
-
 (defn preprocess-raw-map
   [disk-map]
   (map-indexed (fn [index item]
                  {:id     index
                   :symbol (get-symbol-for-index index)
                   :length (Integer/parseInt (str item))
-                  :rest   (Integer/parseInt (str item))
-                  })
-               disk-map)
-  )
+                  :rest   (Integer/parseInt (str item))})
+               disk-map))
 
 (defn split-processed-map
   "Splits the map into 2 sections. 1 for files and 1 for free spaces.
@@ -32,145 +28,44 @@
           {:files {} :free-spaces {}}
           processed-map))
 
-;;
-;; Checksum for the revised algorithm
-;;
-(defn checksum-file
-  "make checksum from a file description"
-  [file-description startIdx]
-  (let [file-range (range startIdx (:length file-description))
-        val (:symbol file-description)
-        ]
-    (* (reduce + file-range) val)))
-
-(defn checksum-compacted-space
-  [space-description startIdx]
-  (let [space-range (range startIdx (+ startIdx (:length space-description)))
-        exploded-chars (seq (:value space-description))
-        zipped (map vector space-range exploded-chars)
-        ]
-    (->> zipped
-         (map #(* (first %) (Character/getNumericValue (second %))))
-         (reduce +))))
-
-(checksum-file {:symbol 9, :length 4} 0)
-(checksum-compacted-space {:symbol \. :value "999" :length 3} 2)
-
-
 (defn determine-next-free-space-node
   [disk-map start-free-space-idx file-length]
+  (printf "determining next free space. Start-index: %d length: %d %n" start-free-space-idx file-length)
   (loop [free-space-idx start-free-space-idx
-         total-free-space 0]
+         total-free-space (get-in disk-map [:free-spaces start-free-space-idx :rest])]
     (if (>= total-free-space file-length)
       free-space-idx
-      (recur (+ free-space-idx 2) (+ total-free-space (:rest (get disk-map free-space-idx))))))
-  )
+      (recur (+ free-space-idx 2)
+             (+ total-free-space (get-in disk-map [:free-spaces (+ free-space-idx 2) :rest]))))))
 
 (defn fill-space
   [disk-map free-space-id data]
   (let [free-space-val (get-in disk-map [:free-spaces free-space-id :val])
-        new-free-space-val (conj free-space-val data)
+        new-free-space-val (into free-space-val data)
         new-rest (- (get-in disk-map [:free-spaces free-space-id :rest]) (count data))
+        new-disk-map (->
+                      (assoc-in disk-map [:free-spaces free-space-id :val] new-free-space-val)
+                      (assoc-in [:free-spaces free-space-id :rest] new-rest))
+        ;;_ (printf "fill space: data: %s id: %d new-free-space-val: %s new-rest: %d%n" data free-space-id new-free-space-val new-rest)
+        ;; _ (pp/pprint new-disk-map)
         ]
-    (->
-     (assoc-in disk-map [:free-spaces free-space-id :val] new-free-space-val)
-     (assoc-in disk-map [:free-spaces free-space-id :rest] new-rest)))
-  )
+    new-disk-map))
 
 (defn fill-spaces-upto
-  [disk-map free-space-from free-space-to file]
+  [disk-map free-space-from free-space-to data]
   (loop [updated-map disk-map
          current-free-space-idx free-space-from
-         rest-data-to-fill file
-         ]
+         rest-data-to-fill data]
     (let [free-space-length-for-index (get-in updated-map [:free-spaces current-free-space-idx :rest])
-          data-to-fill (vec (take free-space-length-for-index file))
+          data-to-fill (take free-space-length-for-index data)
+          ;; _ (println "fill-spaces-upto: " free-space-from free-space-to)
+          ;; _ (println "fill-spaces-upto: " free-space-length-for-index data-to-fill)
           ]
       (if (> current-free-space-idx free-space-to)
-        disk-map
+        updated-map
         (recur (fill-space updated-map current-free-space-idx data-to-fill)
                (+ current-free-space-idx 2)
-               (drop free-space-length-for-index file)))
-      )
-    )
-  )
-
-
-(defn compact-disk-map
-  "With a map of {:files n :free-spaces x}"
-  ([disk-map]
-   (compact-disk-map 1))
-  ([disk-map free-space-idx]
-   (let [files-length (count (:files disk-map))
-         file-index (* 2 files-length)
-         ]
-     (if (<= file-index free-space-idx)
-       disk-map
-       (let [current-file-to-compact (get-in disk-map [:files file-index])
-             file-length (:length current-file-to-compact)
-             data-to-be-filled (apply str (repeat file-length (:symbol current-file-to-compact)))
-             last-free-space-index (determine-next-free-space-node disk-map free-space-idx file-length)
-             filled-disk-map (fill-spaces-upto disk-map free-space-idx last-free-space-index data-to-be-filled)
-             ]
-         (recur (dissoc filled-disk-map file-index) last-free-space-index))
-       )
-     )
-   )
-  )
-
-;;
-;;
-;;
-(defn finalize-freespace
-  "Finalize a freespace record. {:id id :symbol \\. :length n :rest n :val}"
-  [freespace]
-  (let [combined-val (apply str (apply concat (:val freespace)))
-        combined-val-length (count combined-val)
-        remaining (- (:length freespace) combined-val-length)
-        new-val (cond
-                  (empty? (:val freespace)) (apply str (repeat (:length freespace) 0))
-                  (= combined-val-length (:length freespace)) combined-val
-                  (< remaining 0) (throw (Exception. "Error finalizing freespace."))
-                  :else (str combined-val (apply str (repeat remaining 0))))
-        ]
-    (assoc-in freespace [:val] new-val)))
-
-(finalize-freespace {:id 1 :symbol \. :length 5 :val []})
-(finalize-freespace {:id 1 :symbol \. :length 5 :val [["99999"]]})
-(finalize-freespace {:id 1 :symbol \. :length 5 :val [["111"] ["2"]]})
-
-(defn combine-files-and-freespace
-  "Expecting {:files n :free-spaces x}"
-  [disk-map]
-  (let [finalized-freespaces (map #(finalize-freespace %) (:free-spaces disk-map))
-        ]
-    {:files (conj (:files disk-map) finalized-freespaces)}))
-
-;; (combine-files-and-freespace (expand-items disk-data))
-
-;;
-;; End of test functions
-;;
-
-
-(defn solve-part-1
-  "docstring"
-  [filename]
-  (let [raw-line (first (io/read-input "day9/example.txt"))
-        expanded-raw-disk (preprocess-raw-map raw-line)
-        _ (println "raw expanded")
-        data (->> expanded-raw-disk
-                  split-processed-map
-                  ;; TODO implement compaction
-                  ;; expand-freespace-items
-                  ;; TODO implement check summing
-                  combine-files-and-freespace
-                  )
-        _ (pp/pprint data)
-        ]
-    0)
-  )
-
+               (drop free-space-length-for-index data))))))
 
 (defn expand-freespace-item
   [[k v]]
@@ -183,6 +78,163 @@
         free-spaces-kvs (map #(expand-freespace-item %) free-spaces)
         new-free-spaces (into {} free-spaces-kvs)]
     (assoc-in coll [:free-spaces] new-free-spaces)))
+
+(defn compact-disk-map
+  "With a map of {:files n :free-spaces x}"
+  ([disk-map] (compact-disk-map disk-map 1))
+  ([disk-map free-space-idx]
+   (let [files-length (count (:files disk-map))
+         file-index (* 2 (dec files-length))
+         ;; _ (println "File index and free-space node: " file-index free-space-idx)
+         ]
+     (if (<= file-index free-space-idx)
+       disk-map
+       (let [current-file-to-compact (get-in disk-map [:files file-index])
+             file-length (:length current-file-to-compact)
+             ;; TODO update dat to be filled
+             data-to-be-filled (repeat file-length (:symbol current-file-to-compact))
+             last-free-space-index (determine-next-free-space-node disk-map free-space-idx file-length)
+             filled-disk-map (fill-spaces-upto disk-map free-space-idx last-free-space-index data-to-be-filled)]
+         (recur (update-in filled-disk-map [:files] dissoc file-index) last-free-space-index))))))
+
+;;
+;;
+;;
+(defn finalize-freespace
+  "Finalize a freespace record. {:id id :symbol \\. :length n :rest n :val}"
+  [[k v]]
+  (let [combined-val (:val v)
+        combined-val-length (count combined-val)
+        remaining (- (:length v) combined-val-length)
+        new-val (cond
+                  (empty? (:val v)) (into (repeat (:length v) 0))
+                  (= combined-val-length (:length v)) combined-val
+                  (< remaining 0) (throw (Exception. "Error finalizing freespace."))
+                  :else (into combined-val (repeat remaining 0)))]
+    (vector k (assoc-in v [:val] new-val))))
+
+(finalize-freespace [1 {:id 1 :symbol \. :length 5 :val []}])
+(finalize-freespace [2 {:id 1 :symbol \. :length 5 :val [1 1 3 3 3]}])
+(finalize-freespace [3 {:id 1 :symbol \. :length 5 :val [1 1]}])
+
+(defn combine-files-and-freespace
+  "Expecting {:files n :free-spaces x}"
+  [disk-map]
+  (let [finalized-freespaces (map #(finalize-freespace %) (:free-spaces disk-map))]
+    {:files (merge (:files disk-map) (into {} finalized-freespaces))}))
+
+;;
+;; Checksum for the revised algorithm
+;;
+(defn checksum-file
+  "make checksum from a file description"
+  [file-description startIdx]
+  (let [file-range (range startIdx (+ startIdx (:length file-description)))
+        val (:symbol file-description)]
+    (* (reduce + file-range) val)))
+
+(defn append-space-value-if-missing
+  [expected-length value]
+  (if (= (count value) expected-length)
+    value
+    (let [missing-length (- expected-length (count value))
+          padding (repeat missing-length 0)]
+      (into value padding))))
+
+(defn checksum-compacted-space
+  [space-description startIdx]
+  (let [space-range (range startIdx (+ startIdx (:length space-description)))
+        padded-vals (append-space-value-if-missing (:length space-description)
+                                                   (:val space-description))
+        zipped (map vector space-range padded-vals)]
+    (->> zipped
+         (map #(* (first %) (second %)))
+         (reduce +))))
+
+(defn checksum-node
+  [node start-idx]
+  (if (= (:symbol node) \.)
+    (checksum-compacted-space node start-idx)
+    (checksum-file node start-idx)))
+
+(checksum-file {:symbol 99, :length 4} 1)
+(checksum-compacted-space {:symbol \. :val [9 9 9] :length 3} 0)
+(checksum-compacted-space {:symbol \. :val [9] :length 1} 1)
+
+(defn summation
+  [disk-map]
+  (let [sorted-keys (sort (keys (:files disk-map)))
+        files (:files disk-map)]
+    (loop [acc 0
+           curr-idx 0
+           keys sorted-keys]
+      (printf "Current acc: %d curr-idx: %d%n" acc curr-idx)
+      (if (empty? keys)
+        acc
+        (recur (+ acc (checksum-node (get files (first keys)) curr-idx))
+               (+ curr-idx (get-in files [(first keys) :length]))
+               (rest keys))))))
+
+(defn filter-out-empty-nodes
+  [m]
+  (let [pred (fn [[k v]]
+               (let [filtered (not= 0 (:length v))
+                     _ (printf "%nKey: %s Val: %s%n" k v)
+                     _ (println "is filtered: " filtered)
+                     ]
+                 filtered)
+               )
+        filtered-files (into {} (filter pred (:files m)))
+        filtered-spaces (into {} (filter pred (:free-spaces m)))
+        ;; _ (println "filtered files" filtered-files )
+        ;; _ (println "filtered spces"  filtered-spaces)
+        ]
+    {:files filtered-files :free-spaces filtered-spaces})
+  )
+
+;; (filter-out-empty-nodes {:files {0 {:length 1}}
+;;                          :free-spaces {1 {:length 2}}
+;;                          })
+
+(defn solve-part-1
+  "docstring"
+  [filename]
+  (let [raw-line (first (io/read-input "day9/example3.txt"))
+        expanded-raw-disk (preprocess-raw-map raw-line)
+        _ (println "raw expanded")
+        data (->> expanded-raw-disk
+                  split-processed-map
+                  ;; filter-out-empty-nodes
+                  expand-freespace-items
+                  compact-disk-map
+                  filter-out-empty-nodes
+                  combine-files-and-freespace)
+        filtered-data (->> expanded-raw-disk
+                           split-processed-map
+                           filter-out-empty-nodes)
+        _ (pp/pprint expanded-raw-disk)
+        _ (pp/pprint data)
+        _ (pp/pprint filtered-data)
+        sum (summation data)
+        ]
+    sum)
+
+  ;; Answer for input: 6279058075753
+  )
+
+(defn solve-part-2
+  "docstring"
+  [filename]
+  (let [raw-line (first (io/read-input "day9/example.txt"))
+        expanded-raw-disk (preprocess-raw-map raw-line)
+        _ (println "raw expanded")
+        data (->> expanded-raw-disk
+                  split-processed-map
+                  expand-freespace-items)
+        _ (pp/pprint data)]
+    0))
+
+;; demo result: 2858
 
 (def disk-data
   {:files
@@ -207,19 +259,4 @@
     9  {:id 9, :symbol \., :length 1},
     5  {:id 5, :symbol \., :length 3}}})
 
-(expand-freespace-items disk-data)
-
-
-(defn solve-part-2
-  "docstring"
-  [filename]
-  (let [raw-line (first (io/read-input "day9/example.txt"))
-        expanded-raw-disk (preprocess-raw-map raw-line)
-        _ (println "raw expanded")
-        data (->> expanded-raw-disk
-                  split-processed-map
-                  expand-freespace-items)
-        _ (pp/pprint data)
-        ]
-    0)
-  )
+;(expand-freespace-items disk-data)

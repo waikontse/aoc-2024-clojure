@@ -6,12 +6,12 @@
   "docstring"
   [board]
   (let [all-symbols (->>
-                      (for [x-pos (range (:width board))
-                            y-pos (range (:height board))]
-                        (let [symbol (board/get-pos x-pos y-pos board)]
-                          (when (not= \. symbol)
-                            {:symbol symbol :x-pos x-pos :y-pos y-pos})))
-                      (filter some?))]
+                     (for [x-pos (range (:width board))
+                           y-pos (range (:height board))]
+                       (let [symbol (board/get-pos x-pos y-pos board)]
+                         (when (not= \. symbol)
+                           {:symbol symbol :x-pos x-pos :y-pos y-pos})))
+                     (filter some?))]
     (group-by :symbol all-symbols)))
 
 (defn generate-anti-nodes-till-out-of-bounds

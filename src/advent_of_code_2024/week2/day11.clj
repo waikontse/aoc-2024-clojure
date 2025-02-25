@@ -63,11 +63,11 @@
 
 (def memoized-move-stones (memoize move-stones))
 
-(def list-of-17-25 (memoized-move-stones [17] 25))
-(println list-of-17-25)
-(->> (pmap #(memoized-move-stones [%] 5) list-of-17-25)
-     (pmap count)
-     (reduce +))
+;; (def list-of-17-25 (memoized-move-stones [17] 25))
+;; (println list-of-17-25)
+;; (->> (pmap #(memoized-move-stones [%] 5) list-of-17-25)
+;;      (pmap count)
+;;      (reduce +))
 
 (defn solve-part-1
   [filename]
@@ -78,26 +78,26 @@
         parsed-lines (->> splitted-lines
                           (map #(io/str->int %)))
         _ (println "parsed line:" parsed-lines)
-        pebbles (move-stones parsed-lines 1)
+        pebbles (move-stones parsed-lines 25)
         ]
     (count pebbles))
   )
 
-(defn solve-part-2
-  "docstring"
-  [arglist]
-  0)
+;; (defn solve-part-2
+;;   "docstring"
+;;   [arglist]
+;;   0)
 
-(let [raw-lines (io/read-input "day11/input.txt")
-      _ (println "raw line:" raw-lines)
-      splitted-lines (clojure.string/split (first raw-lines) #" ")
-      _ (println "splitted" splitted-lines)
-      parsed-lines (->> splitted-lines
-                        (map #(io/str->int %)))
-      memoized-move-stones (memoize move-stones)
-      pebbles-round-1 (memoized-move-stones parsed-lines 25)
-      pebbles-round-2 (->>
-                        (pmap #(memoized-move-stones [%] 3) pebbles-round-1)
-                        (flatten))
-      ]
-  (count pebbles-round-2))
+;; (let [raw-lines (io/read-input "day11/input.txt")
+;;       _ (println "raw line:" raw-lines)
+;;       splitted-lines (clojure.string/split (first raw-lines) #" ")
+;;       _ (println "splitted" splitted-lines)
+;;       parsed-lines (->> splitted-lines
+;;                         (map #(io/str->int %)))
+;;       memoized-move-stones (memoize move-stones)
+;;       pebbles-round-1 (memoized-move-stones parsed-lines 25)
+;;       pebbles-round-2 (->>
+;;                         (pmap #(memoized-move-stones [%] 3) pebbles-round-1)
+;;                         (flatten))
+;;       ]
+;;   (count pebbles-round-2))

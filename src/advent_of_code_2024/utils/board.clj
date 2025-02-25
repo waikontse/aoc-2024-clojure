@@ -50,6 +50,18 @@
   [old-board new-board-data]
   {:width (:width old-board) :height (:height old-board) :board new-board-data})
 
+(defn parse-to-board
+  [raw-lines]
+  (let [flattened-data (->>
+                        (map #(vec (seq %1)) raw-lines)
+                        (flatten)
+                        (vec))
+        width (count (first raw-lines))
+        height (count raw-lines)
+        empty-board (advent-of-code-2024.utils.board/new width height)
+        ]
+    (update-board-data empty-board flattened-data)))
+
 (defn set-pos
   "Set the item at position X and position Y into the *new* board"
   [xPos yPos board item]
@@ -58,22 +70,10 @@
                               (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
 
-(defn parse-to-board
-  [raw-lines]
-  (let [flattened-data (->>
-                         (map #(vec (char-array %1)) raw-lines)
-                         (flatten)
-                         (vec))
-        width (count (first raw-lines))
-        height (count raw-lines)
-        empty-board (advent-of-code-2024.utils.board/new width height)
-        ]
-    (update-board-data empty-board flattened-data)))
-
 (defn can-get-data-left?
   "docstring"
   [xPos board length]
-  (and (>= (- xPos length) 0)
+  (and (>= (- xPos (dec length)) 0)
        (is-within-x-range? xPos board)))
 
 (defn get-data-left
@@ -85,7 +85,7 @@
 
 (defn can-get-data-right?
   [xPos board length]
-  (and (< (+ xPos length) (:width board))
+  (and (< (+ xPos (dec length)) (:width board))
        (is-within-x-range? xPos board)))
 
 (defn get-data-right
@@ -97,7 +97,7 @@
 
 (defn can-get-data-top?
   [yPos board length]
-  (and (>= (- yPos length) 0)
+  (and (>= (- yPos (dec length)) 0)
        (is-within-y-range? yPos board)))
 
 (defn get-data-top
@@ -109,7 +109,7 @@
 
 (defn can-get-data-bottom?
   [yPos board length]
-  (and (< (+ yPos length) (:height board))
+  (and (< (+ yPos (dec length)) (:height board))
        (is-within-y-range? yPos board)))
 
 (defn get-data-bottom
@@ -165,8 +165,26 @@
   (let [fetched-values (mapv #(get-pos (+ xPos %) (+ yPos %) board) (range length))]
     fetched-values))
 
+;; Convert current position to another adjacent position
+(defn get-pos-top
+  [pos]
+  {:x-pos (:x-pos pos) :y-pos (dec (:y-pos pos))})
+
+(defn get-pos-bottom
+  [pos]
+  {:x-pos (:x-pos pos) :y-pos (inc (:y-pos pos))})
+
+(defn get-pos-left
+  [pos]
+  {:x-pos (dec (:x-pos pos)) :y-pos (:y-pos pos)})
+
+(defn get-pos-right
+  [pos]
+  {:x-pos (inc (:x-pos pos)) :y-pos (:y-pos pos)})
+
 (defn print-board
   "docstring"
   [board]
   (let [rows (partition (:width board) (:board board))]
+    (printf "Board width: %d height: %d%n" (:width board) (:height board))
     (dorun (map #(apply println %) rows))))
