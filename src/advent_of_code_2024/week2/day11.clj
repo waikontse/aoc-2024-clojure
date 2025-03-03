@@ -1,9 +1,9 @@
 (ns advent-of-code-2024.week2.day11
-  (:require [advent-of-code-2024.utils.io :as io]))
+  (:require [advent-of-code-2024.utils.io :as io]
+            [clojure.pprint :as pp]))
 
 (defn split-stone
   [stone acc]
-;  (println "splitting stone" stone)
   (let [stone-str (str stone)
         length (count stone-str)
         mid-point (/ length 2)
@@ -15,7 +15,6 @@
 
 (defn move-stone
   [stone acc]
- ; (println "move stone:" stone)
   (cond
     (= 0 stone) (conj acc 1)
     (even? (count (str stone))) (split-stone stone acc)
@@ -23,53 +22,56 @@
 
 (defn move-stones
   [stones rounds]
- ; (println "moving stones:" stones)
   (loop [stones stones
          rounds rounds]
     (if (= 0 rounds)
       stones
-      (let [updated-stones (reduce #(move-stone %2 %1) [] stones)
-            ;_ (println "updated stones" updated-stones)
-            ]
+      (let [updated-stones (reduce #(move-stone %2 %1) [] stones)]
         (recur updated-stones (dec rounds))))))
-
-(defn contains-in-seq?
-  [target coll]
-  ;(println "contain-in-seq coll?" coll)
-  (let [counts (count (filter #(= target %) coll))
-        ]
-    counts))
-
-(defn contains-seq?
-  [sequence coll]
-  ;(println "coll" coll)
-  (let [counts (pmap #(= sequence %) coll)
-        true-counts (count (filter true? counts))]
-    true-counts)
-  )
-
-(let [stones (->> (range 0 40)
-                  (map #(move-stones [2024] %)))
-      ;counts (->> stones
-      ;            (pmap #(partition 4 1 %))
-      ;            (pmap #(contains-seq? '(4048 1 4048 8096) %))
-      ;            ;(pmap #(= [4048 1 4048 8096] %))
-      ;            ;(filter true?)
-      ;            ;(count)
-      ;            )
-      ;_ (println counts)
-      _ (doall (map #(println (contains-in-seq? 2024 %) (count %)) stones))
-      ])
 
 (def memoized-move-stones (memoize move-stones))
 
-;; (def list-of-17-25 (memoized-move-stones [17] 25))
-;; (println list-of-17-25)
-;; (->> (pmap #(memoized-move-stones [%] 5) list-of-17-25)
-;;      (pmap count)
-;;      (reduce +))
-
 (defn solve-part-1
+  [filename]
+  (let [raw-lines (io/read-input "day11/example.txt")
+        _ (println "raw line:" raw-lines)
+        splitted-lines (clojure.string/split (first raw-lines) #" ")
+        _ (println "splitted" splitted-lines)
+        parsed-lines (->> splitted-lines
+                          (map #(io/str->int %)))
+        _ (println "parsed line:" parsed-lines)
+        pebbles (memoized-move-stones parsed-lines 25)
+        ]
+    (count pebbles)))
+
+(defn multiply-values-for-key
+  [frequency-table multiplier]
+  (reduce (fn [coll item]
+            (let [[k v] item]
+              (into coll [[k (* multiplier v)]])))
+          {}
+          frequency-table))
+
+(defn run-frequencies-25-times
+  [frequencies-table]
+  (let [expanded-frequencies-table (pmap (fn [[k v]]
+                                          (-> (frequencies (memoized-move-stones [k] 25))
+                                              (multiply-values-for-key v)))
+                                        frequencies-table)
+        ]
+    (apply merge-with + expanded-frequencies-table)))
+
+(defn solve-for-75
+  "Since have already calculated a number for 25 rounds, we can combime it.
+   1. Get the round of 25 for a number. Get the frequencies of that result 1.
+   2. For each of those keys, we
+      a. calculate it till round 25. Get the frequencies and multiply those values with the value from 1
+      b. We need to combine the frequencies for all the keys
+   3. We do it 1 last round of 25 for all the keys in the frequency set from step 2 * frequencies"
+  [number]
+  )
+
+(defn solve-part-2
   [filename]
   (let [raw-lines (io/read-input "day11/input.txt")
         _ (println "raw line:" raw-lines)
@@ -77,27 +79,13 @@
         _ (println "splitted" splitted-lines)
         parsed-lines (->> splitted-lines
                           (map #(io/str->int %)))
-        _ (println "parsed line:" parsed-lines)
-        pebbles (move-stones parsed-lines 25)
+        pebbles (memoized-move-stones parsed-lines 25)
+        set-pebbles (frequencies pebbles)
+        fifty-times (run-frequencies-25-times set-pebbles)
+        seventy-five-times (run-frequencies-25-times fifty-times)
+        _ (println "unique vals: " (count seventy-five-times))
+        sum-of-values (reduce + (vals seventy-five-times))
+        _ (println "sum of values: " sum-of-values)
         ]
-    (count pebbles))
+    sum-of-values)
   )
-
-;; (defn solve-part-2
-;;   "docstring"
-;;   [arglist]
-;;   0)
-
-;; (let [raw-lines (io/read-input "day11/input.txt")
-;;       _ (println "raw line:" raw-lines)
-;;       splitted-lines (clojure.string/split (first raw-lines) #" ")
-;;       _ (println "splitted" splitted-lines)
-;;       parsed-lines (->> splitted-lines
-;;                         (map #(io/str->int %)))
-;;       memoized-move-stones (memoize move-stones)
-;;       pebbles-round-1 (memoized-move-stones parsed-lines 25)
-;;       pebbles-round-2 (->>
-;;                         (pmap #(memoized-move-stones [%] 3) pebbles-round-1)
-;;                         (flatten))
-;;       ]
-;;   (count pebbles-round-2))
