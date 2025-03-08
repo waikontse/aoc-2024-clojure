@@ -1,5 +1,13 @@
 (ns advent-of-code-2024.utils.board)
 
+;; DESCRIPTION
+;;     Datastructure description
+;;     {
+;;         :width  <int>
+;;         :height <int>
+;;         :board  <Array<T>>
+;;     }
+
 (defn new
   "Create a new board of width X and height Y"
   [x y]
@@ -53,9 +61,9 @@
 (defn parse-to-board
   [raw-lines]
   (let [flattened-data (->>
-                        (map #(vec (seq %1)) raw-lines)
-                        (flatten)
-                        (vec))
+                         (map #(vec (seq %1)) raw-lines)
+                         (flatten)
+                         (vec))
         width (count (first raw-lines))
         height (count raw-lines)
         empty-board (advent-of-code-2024.utils.board/new width height)
@@ -182,6 +190,49 @@
   [pos]
   {:x-pos (inc (:x-pos pos)) :y-pos (:y-pos pos)})
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; testing board properties
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn is-same-symbol?
+  [board curr-pos can-get-next? f-next]
+  (if can-get-next?
+    (let [symbol (get-pos (:x-pos curr-pos) (:y-pos curr-pos) board)
+          next-symbol (f-next curr-pos)]
+      (= symbol next-symbol))
+    false)
+  )
+
+(defn is-same-symbol-left?
+  [board curr-pos]
+  (is-same-symbol?
+    board curr-pos
+    (can-get-data-left? (:x-pos curr-pos) board 2)
+    #(last (get-data-left (:x-pos %) (:y-pos %) board 2))))
+
+(defn is-same-symbol-right?
+  [board curr-pos]
+  (is-same-symbol?
+    board curr-pos
+    (can-get-data-right? (:x-pos curr-pos) board 2)
+    #(last (get-data-right (:x-pos %) (:y-pos %) board 2))))
+
+(defn is-same-symbol-top?
+  [board curr-pos]
+  (is-same-symbol?
+    board curr-pos
+    (can-get-data-top? (:y-pos curr-pos) board 2)
+    #(last (get-data-top (:x-pos %) (:y-pos %) board 2))))
+
+(defn is-same-symbol-bottom?
+  [board curr-pos]
+  (is-same-symbol?
+    board curr-pos
+    (can-get-data-bottom? (:y-pos curr-pos) board 2)
+    #(last (get-data-bottom (:x-pos %) (:y-pos %) board 2))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Diagnostics
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn print-board
   "docstring"
   [board]
