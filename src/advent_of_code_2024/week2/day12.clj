@@ -1,46 +1,9 @@
 (ns advent-of-code-2024.week2.day12
   (:require [advent-of-code-2024.utils.io :as io]
             [advent-of-code-2024.utils.board :as board]
-            [clojure.pprint :as pp])
-  )
-
-(def not-contains? (complement contains?))
-
-(defn next-flood-fill-steps
-  "Determine the nex possible steps for the flood-fill algorithm"
-  [board curr-pos seen]
-  (let [left-pos  (-> (board/is-same-symbol-left? board curr-pos)
-                      (when (board/get-pos-left curr-pos)))
-        right-pos (-> (board/is-same-symbol-right? board curr-pos)
-                      (when (board/get-pos-right curr-pos)))
-        top-pos (-> (board/is-same-symbol-top? board curr-pos)
-                    (when (board/get-pos-top curr-pos)))
-        bottom-pos (-> (board/is-same-symbol-bottom? board curr-pos)
-                       (when (board/get-pos-bottom curr-pos)))
-        ]
-    (->> [left-pos right-pos top-pos bottom-pos]
-         (filter some?)
-         (filter #(not-contains? seen %))))
-  )
-
-(defn flood-fill
-  "Run the flood-fill algorithm given a board and a starting position"
-  ([board start-pos] (flood-fill board [start-pos] #{}))
-  ([board start-pos seen]
-   (loop [currently-seen seen
-          current-to-visit start-pos
-          ]
-     (if (empty? current-to-visit)
-       currently-seen
-       (let [next-steps (next-flood-fill-steps board (first current-to-visit) currently-seen)
-             updated-seen (-> currently-seen
-                              (conj (first current-to-visit))
-                              (into next-steps))
-             _ (println "updated seen:" updated-seen)
-             ]
-         (recur updated-seen (into (rest current-to-visit) next-steps)))))
-   )
-  )
+            [clojure.pprint :as pp]
+            [clojure.set :as set]
+            [advent-of-code-2024.utils.algorithms :as algo]))
 
 (defn get-all-different-symbols
   "Get all the different symbols found on board.
@@ -60,7 +23,25 @@
 (defn determine-all-regions-for-symbol
   "Determine all the regions for a given symbol."
   [board symbol]
-  [])
+  (loop [remaining-positions (set (get-all-positions-for-symbol board symbol))
+         acc-regions []
+         ]
+    (if (empty? remaining-positions)
+      acc-regions
+      (let [mapped-region (algo/flood-fill board (first remaining-positions))
+            new-remaining-positions (set/difference remaining-positions mapped-region)
+            ]
+        (recur new-remaining-positions (conj acc-regions mapped-region)))
+      )))
+
+(defn map-all-symbols-to-regions
+  [board]
+  (->> (reduce (fn [coll symbol]
+            (conj coll [symbol (determine-all-regions-for-symbol board symbol)]))
+          []
+          (get-all-different-symbols board))
+       (into {}))
+  )
 
 (defn get-vertial-perimeter-for-region
   ""
@@ -93,9 +74,12 @@
         all-board-symbols (get-all-different-symbols board)
         ;_ (println all-board-symbols)
         ;_ (println (get-all-positions-for-symbol board (first all-board-symbols)))
-        rs (flood-fill board {:x-pos 4 :y-pos 0})
-        _ (println "all the R's at 0,0: ")
-        _ (pp/pprint rs)
+        ;; rs (flood-fill board {:x-pos 9 :y-pos 0})
+        ;; rs (determine-all-regions-for-symbol board \I)
+        ;; _ (println "all the R's at 0,0: ")
+        ;; _ (pp/pprint rs)
+        whole-map (map-all-symbols-to-regions board)
+        _ (pp/pprint whole-map)
         ]
     )
   0)
