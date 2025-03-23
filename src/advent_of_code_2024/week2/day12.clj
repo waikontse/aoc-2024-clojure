@@ -40,8 +40,30 @@
             (conj coll [symbol (determine-all-regions-for-symbol board symbol)]))
           []
           (get-all-different-symbols board))
-       (into {}))
-  )
+       (into {})))
+
+
+(defn is-position-part-of-edge?
+  "Determine if given a board and a position, return true if postion is an edge.
+  Otherwise return false."
+  [board position]
+  (let [neighbours [board/is-same-symbol-left?
+                    board/is-same-symbol-right?
+                    board/is-same-symbol-top?
+                    board/is-same-symbol-bottom?]
+        ]
+    (io/in? false neighbours)))
+
+(defn get-all-edges-for-region
+  "Given a board and a region (set of all the positions), we return the edges of
+  that region. The edges are returned in a set, as duplicates do not add extra
+  meaning."
+  [board region]
+  (reduce (fn [coll item]
+            (when (true? (is-position-part-of-edge? board item))
+              (into coll item)))
+          #{}
+          region))
 
 (defn get-vertial-perimeter-for-region
   ""

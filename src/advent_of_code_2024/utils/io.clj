@@ -11,6 +11,11 @@
   (with-open [rdr (clojure.java.io/reader (append-path filename))]
     (into [] (line-seq rdr))))
 
+(defn in?
+  ""
+  [value coll]
+  (boolean (some #(= value %) coll)))
+
 (defn char->str
   "convert a Character to string"
   [char]
