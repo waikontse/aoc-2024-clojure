@@ -44,14 +44,13 @@
 
 
 (defn is-position-part-of-edge?
-  "Determine if given a board and a position, return true if postion is an edge.
-  Otherwise return false."
+  "Determine if given a board and a position, return true if position is an edge.
+  Otherwise, return false."
   [board position]
   (let [neighbours [(board/is-same-symbol-left? board position)
                     (board/is-same-symbol-right? board position)
                     (board/is-same-symbol-top? board position)
                     (board/is-same-symbol-bottom? board position)]
-        _ (println "neighbours: " neighbours)
         ]
     (io/in? false neighbours)))
 
@@ -61,11 +60,16 @@
   meaning."
   [board region]
   (reduce (fn [coll item]
-            (println "checking item: " item (is-position-part-of-edge? board item))
-            (when (true? (is-position-part-of-edge? board item))
-              (conj coll item)))
+            (if (true? (is-position-part-of-edge? board item))
+              (conj coll item)
+              coll))
           #{}
           region))
+
+(defn get-all-edges-for-regions
+  "docstring"
+  [board regions]
+  (map #(get-all-edges-for-region board %) regions))
 
 (defn get-perimeter-for-region
   ""
@@ -94,9 +98,9 @@
         ;; _ (pp/pprint rs)
         whole-map (map-all-symbols-to-regions board)
         _ (pp/pprint whole-map)
-        rs (first (get whole-map \R))
+        rs (get whole-map \C)
         ;; _ (pp/pprint rs)
-        edges-for-r (get-all-edges-for-region board rs)
+        edges-for-r (get-all-edges-for-regions board rs)
         _ (pp/pprint edges-for-r)
         ]
     )
