@@ -47,10 +47,11 @@
   "Determine if given a board and a position, return true if postion is an edge.
   Otherwise return false."
   [board position]
-  (let [neighbours [board/is-same-symbol-left?
-                    board/is-same-symbol-right?
-                    board/is-same-symbol-top?
-                    board/is-same-symbol-bottom?]
+  (let [neighbours [(board/is-same-symbol-left? board position)
+                    (board/is-same-symbol-right? board position)
+                    (board/is-same-symbol-top? board position)
+                    (board/is-same-symbol-bottom? board position)]
+        _ (println "neighbours: " neighbours)
         ]
     (io/in? false neighbours)))
 
@@ -60,20 +61,11 @@
   meaning."
   [board region]
   (reduce (fn [coll item]
+            (println "checking item: " item (is-position-part-of-edge? board item))
             (when (true? (is-position-part-of-edge? board item))
-              (into coll item)))
+              (conj coll item)))
           #{}
           region))
-
-(defn get-vertial-perimeter-for-region
-  ""
-  []
-  0)
-
-(defn get-vertical-perimeter-for-region
-  ""
-  []
-  0)
 
 (defn get-perimeter-for-region
   ""
@@ -102,6 +94,10 @@
         ;; _ (pp/pprint rs)
         whole-map (map-all-symbols-to-regions board)
         _ (pp/pprint whole-map)
+        rs (first (get whole-map \R))
+        ;; _ (pp/pprint rs)
+        edges-for-r (get-all-edges-for-region board rs)
+        _ (pp/pprint edges-for-r)
         ]
     )
   0)
