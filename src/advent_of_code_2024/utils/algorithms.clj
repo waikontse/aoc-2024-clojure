@@ -39,3 +39,11 @@
              ]
          (recur updated-seen (into (rest current-to-visit) next-steps)))))
    ))
+
+(defn manhattan
+  "Compute the manhattan distance between 2 points"
+  [from to]
+  (let [x-diff (abs (- (:x-pos from) (:x-pos to)))
+        y-diff (abs (- (:y-pos from) (:y-pos to)))
+        ]
+    (+ x-diff y-diff)))

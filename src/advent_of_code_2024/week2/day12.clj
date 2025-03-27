@@ -1,5 +1,6 @@
 (ns advent-of-code-2024.week2.day12
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [advent-of-code-2024.utils.board :as b]
+            [advent-of-code-2024.utils.io :as io]
             [advent-of-code-2024.utils.board :as board]
             [clojure.pprint :as pp]
             [clojure.set :as set]
@@ -59,12 +60,17 @@
   that region. The edges are returned in a set, as duplicates do not add extra
   meaning."
   [board region]
-  (reduce (fn [coll item]
-            (if (true? (is-position-part-of-edge? board item))
-              (conj coll item)
-              coll))
-          #{}
-          region))
+  (let [all-edges  (reduce (fn [coll item]
+                             (if (true? (is-position-part-of-edge? board item))
+                               (conj coll item)
+                               coll))
+                           #{}
+                           region)
+        symbol (b/get-pos (:x-pos (first region)) (:y-pos (first region)) board)
+        region-size (count region)
+        ]
+    {:edges all-edges :symbol symbol :region-size region-size})
+  )
 
 (defn get-all-edges-for-regions
   "docstring"
@@ -97,11 +103,18 @@
         ;; _ (println "all the R's at 0,0: ")
         ;; _ (pp/pprint rs)
         whole-map (map-all-symbols-to-regions board)
-        _ (pp/pprint whole-map)
-        rs (get whole-map \C)
+        ;_ (pp/pprint whole-map)
+        all-regions (vals whole-map)
+        ;_ (pp/pprint all-regions)
+        all-edges-for-all-regions (map #(get-all-edges-for-regions board %) all-regions)
+        combined (reduce into [] all-edges-for-all-regions)
+        ;_ (pp/pprint all-edges-for-all-regions)
+        _ (pp/pprint combined)
+        _ (println "Total regions:" (count combined))
         ;; _ (pp/pprint rs)
-        edges-for-r (get-all-edges-for-regions board rs)
-        _ (pp/pprint edges-for-r)
+        ;rs (get whole-map \C)
+        ;edges-for-r (get-all-edges-for-regions board rs)
+        ;_ (pp/pprint edges-for-r)
         ]
     )
   0)
