@@ -1,5 +1,6 @@
 (ns advent-of-code-2024.week2.day13
-  (:require [advent-of-code-2024.utils.io :as io]))
+  (:require [advent-of-code-2024.utils.io :as io]
+            [clojure.pprint :as pp]))
 
 ;; Break the 3 lines up
 (def not-blank? (complement clojure.string/blank?))
@@ -30,9 +31,6 @@
   [xs]
   (apply map vector xs))
 
-(ints->expanded-form '((94 34) (22 67) (8400 5400)))
-(ints->expanded-form [[94 34] [22 67] [8400 5400]])
-
 (defn row-divide-by
   [row divisor]
   (map #(/ % divisor) row))
@@ -51,6 +49,12 @@
   (->> (map vector m1 m2)
        (map #(apply - %))))
 
+(defn row-reduce
+  [reduced toBeReduced col]
+  (let [multiplier (nth toBeReduced col)
+        multipliedReduced (row-multiply-by reduced multiplier)]
+    (row-subtract toBeReduced multipliedReduced)))
+
 (defn row-simplify-col
   [row col]
   (let [divisor (nth row col)]
@@ -59,41 +63,66 @@
 (defn matrix-reduce-col
   "docstring"
   [matrix col]
-  (let [target (row-simplify-col matrix col)]
-    )
+  (let [before (flatten (take col matrix))
+        reduced (row-simplify-col (nth matrix col) col)
+        rest (drop (inc col) matrix)
+        reduced-rest (map #(row-reduce reduced % col) rest)]
+    (->> (concat [before reduced] reduced-rest)
+         (filter (complement empty?)))))
+
+(defn matrix-reduce-fully
+  [matrix]
+  (reduce (fn [coll item]
+            (matrix-reduce-col coll item))
+          (matrix-reduce-col matrix 0)
+          (range 1 (count matrix)))
   )
 
-(row-simplify-col [94 22 8400] 0)
-(row-divide-by [94 22 8400] 94)
+(defn matrix-simplify-col
+  [matrix col]
+  (let [reducer (nth matrix col)
+        before  (take col matrix)
+        after (drop (inc col) matrix)
+        simplified-before (map #(row-reduce reducer % col) before)
+        ]
+    (->> (concat [(flatten simplified-before) reducer] after)
+         (filter (complement empty?)))))
+
+(defn matrix-simplify-fully
+  [matrix]
+  (let [length (count matrix)]
+    (reduce (fn [coll item]
+              (matrix-simplify-col coll item))
+            (matrix-simplify-col matrix (dec length))
+            (reverse (range 1 (dec length))))
+    ))
+
+(defn matrix-to-echelon
+  [matrix]
+  ;(println "Reducing form to echelon")
+  ;(pp/pprint matrix)
+  (->> (matrix-reduce-fully matrix)
+       (matrix-simplify-fully)))
 
 (def full-matrix '([94 22 8400] [34 67 5400]))
+(matrix-reduce-fully full-matrix)
+(matrix-to-echelon full-matrix)
 
-(def mt1 [94 22 8400])
-(def mt2 [34 67 5400])
+(defn calc-price
+  [matrix]
+  (let [first (last (first matrix))
+        second (last (second matrix))]
+    (+ (* first 3) second))
+  )
 
-(def int1 (-> (row-simplify-col mt1 0)
-              (row-multiply-by (first mt2))
-              ))
+(defn is-matrix-okay?
+  [matrix]
+  (->> (map (fn [row] (every? #(= (type %) (type 1N)) row)) matrix)
+       (every? true?)))
 
-(-> (row-simplify-col mt1 0)
-    (row-multiply-by (first mt2))
-    )
-
-(defn invert-ratio
-  [ratio]
-  (/ (denominator ratio) (numerator ratio)))
-
-(invert-ratio 3455/67)
-
-(denominator 23/45)
-
-(def row2 (row-subtract mt2 int1))
-(row-multiply-by row2 (invert-ratio (second row2)))
-
-(raw-line->ints "Button A: X+94, Y+34")
-(raw-line->ints "Button B: X+22, Y+67")
-(raw-line->ints "Prize: X=8400, Y=5400")
-
+(def solved '((1N 0N 80N) (0N 1N 40N)))
+(is-matrix-okay? solved)
+(calc-price solved)
 
 (defn solve-part-1
   ""
@@ -103,8 +132,14 @@
                     (filter not-blank? raw-strings)
                     (partition 3))
         _ (run! println no-blanks)
-        mapped-lines (raw-lines->ints (first no-blanks))
-        _ (println mapped-lines)
-        _ (println (ints->expanded-form mapped-lines))
+        mapped-lines  (map #(raw-lines->ints %) no-blanks)
+        ;;_ (pp/pprint mapped-lines)
+        all-matrix-form (map #(ints->expanded-form %) mapped-lines)
+        _ (pp/pprint all-matrix-form)
+        all-solved (map #(matrix-to-echelon %) all-matrix-form)
+        _ (pp/pprint all-solved)
+        filtered (filter is-matrix-okay? all-solved)
+        all-coins (map #(calc-price %) filtered)
+        _ (println (io/sum all-coins))
         ])
   0)
