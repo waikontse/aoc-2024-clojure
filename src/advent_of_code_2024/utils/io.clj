@@ -26,7 +26,6 @@
   [coll]
   (map #(char->str %) coll))
 
-
 (defn str->int
   "Convert a string to integer"
   [str]
@@ -36,7 +35,6 @@
   "Convert a collection of strings to longs"
   [coll]
   (map #(str->int %) coll))
-
 
 (defn sum
   "Sum all the values into the coll"
@@ -49,7 +47,7 @@
   (into (subvec coll 0 pos) (subvec coll (inc pos))))
 
 (defn swap-vec
-  "swap the values of a vector between 2 indexs"
+  "swap the values of a vector between 2 indexes"
   [coll idx1 idx2]
   (let [val-1 (get coll idx1)
         val-2 (get coll idx2)]
