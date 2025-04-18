@@ -47,3 +47,102 @@
         y-diff (abs (- (:y-pos from) (:y-pos to)))
         ]
     (+ x-diff y-diff)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; START OF linear algebra
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn row-divide-by
+  [row divisor]
+  (map #(/ % divisor) row))
+
+(defn row-multiply-by
+  [row multiplier]
+  (map #(* % multiplier) row))
+
+(defn row-subtract
+  [m1 m2]
+  (->> (map vector m1 m2)
+       (map #(apply - %))))
+
+(defn row-reduce
+  [reduced toBeReduced col]
+  (let [multiplier (nth toBeReduced col)
+        multipliedReduced (row-multiply-by reduced multiplier)]
+    (row-subtract toBeReduced multipliedReduced)))
+
+(defn row-simplify-col
+  [row col]
+  (let [divisor (nth row col)]
+    (row-divide-by row divisor)))
+
+(defn matrix-reduce-col
+  [matrix col]
+  (let [before (flatten (take col matrix))
+        reduced (row-simplify-col (nth matrix col) col)
+        rest (drop (inc col) matrix)
+        reduced-rest (map #(row-reduce reduced % col) rest)]
+    (->> (concat [before reduced] reduced-rest)
+         (filter (complement empty?)))))
+
+(defn matrix-reduce-fully
+  [matrix]
+  (reduce (fn [coll item]
+            (matrix-reduce-col coll item))
+          (matrix-reduce-col matrix 0)
+          (range 1 (count matrix)))
+  )
+
+(defn matrix-simplify-col
+  [matrix col]
+  (let [reducer (nth matrix col)
+        before (take col matrix)
+        after (drop (inc col) matrix)
+        simplified-before (map #(row-reduce reducer % col) before)
+        ]
+    (->> (concat [(flatten simplified-before) reducer] after)
+         (filter (complement empty?)))))
+
+(defn matrix-simplify-fully
+  [matrix]
+  (let [length (count matrix)]
+    (reduce (fn [coll item]
+              (matrix-simplify-col coll item))
+            (matrix-simplify-col matrix (dec length))
+            (reverse (range 1 (dec length))))
+    ))
+
+(defn matrix-to-echelon
+  [matrix]
+  ;(println "Reducing form to echelon")
+  ;(pp/pprint matrix)
+  (->> (matrix-reduce-fully matrix)
+       (matrix-simplify-fully)))
+
+
+(defn determinant
+  [matrix]
+  (let [row1 (first matrix)
+        row2 (second matrix)
+        a (first row1)
+        b (second row1)
+        c (first row2)
+        d (second row2)
+        ]
+    (- (* a d) (* b c))))
+
+(defn solve-by-determinant
+  [matrix extra]
+  (let [row1 (first matrix)
+        row2 (second matrix)
+        vector-col [(+ extra (last row1)) (+ extra (last row2))]
+        d (determinant matrix)
+        dx (determinant [(assoc row1 0 (first vector-col))
+                         (assoc row2 0 (second vector-col))])
+        dy (determinant [(assoc row1 1 (first vector-col))
+                         (assoc row2 1 (second vector-col))])
+        ]
+    [(/ dx d) (/ dy d)]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; END of linear algebra
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
