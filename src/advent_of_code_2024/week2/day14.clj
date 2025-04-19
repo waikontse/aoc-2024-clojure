@@ -19,7 +19,6 @@
         right (io/str->int (second raw-numbers))]
     [left right]))
 
-
 (defn parse-to-spec
   [raw-line]
   (let [clean-line (clean-string raw-line)
@@ -35,24 +34,45 @@
 ;; partition to the quadrants
 
 (defn multiply-position
+  [{:keys [position velocity]}
+   multiplier]
+  (let [new-velocity (algo/row-multiply-by velocity multiplier)
+        new-values (map vector position new-velocity)
+        ]
+    (map #(apply + %) new-values))
+  )
+
+(defn normalize-position
+  "Normalizes a position."
+  [position
+   {:keys [width height]}
+   ]
+  [(mod (first position) width) (mod (second position) height)]
+  )
+
+(defn split-into-quadrants
   ""
-  [robot multiplier]
-  (let [new-values (algo/row-multiply-by multiplier)]
+  [position
+   {:keys [width height]}]
+  (let [ ]
     )
 
 
-  )
+  "")
 
-(def pos  {:position {:x 9, :y 3}, :velocity {:x 2, :y 3}})
-((comp :x :position) pos)
+
 
 (defn solve-part-1
-"docstring"
-[filename]
-(let [lines (io/read-input "day14/example.txt")
+  [filename]
+  (let [lines (io/read-input "day14/example.txt")
                                         ;_ (println lines)
-      cleaned-lines (map #(clean-string %) lines)
-      _ (pp/pprint cleaned-lines)
-      _ (pp/pprint (map #(parse-to-spec %) cleaned-lines))
-      ])
-)
+        cleaned-lines (map #(clean-string %) lines)
+        parsed-lines (map #(parse-to-spec %) cleaned-lines)
+        _ (pp/pprint cleaned-lines)
+        _ (pp/pprint parsed-lines)
+        all-new-values (map #(multiply-position % 100) parsed-lines)
+        _ (pp/pprint all-new-values)
+        all-normalized (map #(normalize-position % {:width 11 :height 7}) all-new-values)
+        _ (pp/pprint all-normalized)
+        ])
+  )
