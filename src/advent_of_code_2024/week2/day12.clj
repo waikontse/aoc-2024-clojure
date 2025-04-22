@@ -53,23 +53,21 @@
                     (board/is-same-symbol-top? board position)
                     (board/is-same-symbol-bottom? board position)]
         ]
-    (io/in? false neighbours)))
+    (->> neighbours
+         (map boolean)
+         (filter false?)
+         (count))))
 
 (defn get-all-edges-for-region
   "Given a board and a region (set of all the positions), we return the edges of
   that region. The edges are returned in a set, as duplicates do not add extra
   meaning."
   [board region]
-  (let [all-edges  (reduce (fn [coll item]
-                             (if (true? (is-position-part-of-edge? board item))
-                               (conj coll item)
-                               coll))
-                           #{}
-                           region)
+  (let [all-edges  (map #(is-position-part-of-edge? board %) region)
         symbol (b/get-pos (:x-pos (first region)) (:y-pos (first region)) board)
         region-size (count region)
         ]
-    {:edges all-edges :symbol symbol :region-size region-size})
+    {:edges (reduce + all-edges) :symbol symbol :region-size region-size})
   )
 
 (defn get-all-edges-for-regions
@@ -77,22 +75,13 @@
   [board regions]
   (map #(get-all-edges-for-region board %) regions))
 
-(defn get-perimeter-for-region
-  ""
-  [x-poss->positions]
-  0)
-
-(defn get-area-of-region
-  [x-poss->positions]
-  (count x-poss->positions))
-
-(defn is-region-within-another-region
-  [region-a region-b]
-  false)
+(defn calculate-price-of-region
+  [region]
+  (* (:edges region) (:region-size region)))
 
 (defn solve-part-1
   [filename]
-  (let [raw-lines (io/read-input "day12/example.txt")
+  (let [raw-lines (io/read-input "day12/input.txt")
         board (board/parse-to-board raw-lines)
         _ (board/print-board board)
         all-board-symbols (get-all-different-symbols board)
@@ -111,7 +100,9 @@
         ;_ (pp/pprint all-edges-for-all-regions)
         _ (pp/pprint combined)
         _ (println "Total regions:" (count combined))
-        ;; _ (pp/pprint rs)
+        total-price (->> (map #(calculate-price-of-region %) combined)
+                         (reduce +))
+        _ (println "total price for whole region: " total-price)
         ;rs (get whole-map \C)
         ;edges-for-r (get-all-edges-for-regions board rs)
         ;_ (pp/pprint edges-for-r)

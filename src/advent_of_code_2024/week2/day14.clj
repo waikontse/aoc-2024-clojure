@@ -2,6 +2,7 @@
   (:require [advent-of-code-2024.utils.io :as io]
             [clojure.pprint :as pp]
             [advent-of-code-2024.utils.algorithms :as algo]
+            [advent-of-code-2024.utils.board :as b]
             )
   )
 
@@ -50,29 +51,174 @@
   [(mod (first position) width) (mod (second position) height)]
   )
 
-(defn split-into-quadrants
-  ""
+
+(def uneven? (complement even?))
+
+(defn is-middle-helper
+  [x-or-y width-or-height]
+  (if (even? width-or-height)
+    false
+    (let [middle (/ (dec width-or-height) 2)]
+      (if (= middle x-or-y)
+        true
+        false))
+    ))
+
+
+(defn is-middle?
   [position
    {:keys [width height]}]
-  (let [ ]
-    )
+  (let [is-width-middle? (is-middle-helper (first position) width)
+        is-height-middle? (is-middle-helper (second position) height)]
+    (or is-width-middle? is-height-middle?))
+  )
+
+;; is middle in width
+(is-middle? [4 3] {:width 7 :height 11})
+
+;; is middle in height
+(is-middle? [3 7] {:width 7 :height 11})
 
 
-  "")
+
+(defn is-left-side?
+  [position
+   {:keys [width height]
+    :as size}]
+  (if (true? (is-middle? position size))
+    false
+    (let [middle (/ width 2)]
+      (<= (first position) middle)))
+  )
+
+(defn is-upper-side?
+  [position
+   {:keys [width height]
+    :as size}]
+  (if (true? (is-middle? position size))
+    false
+    (let [middle (/ height 2)]
+      (<= (second position) middle))))
 
 
+(defn split-into-quadrants
+  [position
+   {:keys [width height]
+    :as size}]
+  (let [on-middle? (is-middle? position size)
+        on-left? (is-left-side? position size)
+        on-upper? (is-upper-side? position size)]
+    (cond
+      (true? on-middle?) :M
+      (and (true? on-left?) (true? on-upper?)) :LU
+      (and (true? on-left?) (false? on-upper?)) :LL
+      (and (false? on-left?) (true? on-upper?)) :RU
+      (and (false? on-left?) (false? on-upper?)) :RL
+      ))
+  )
+
+;; split into qadrants
+;; M
+(split-into-quadrants [4 3] {:width 11 :height 7})
+(split-into-quadrants [3 6] {:width 11 :height 7})
+;; LU
+(split-into-quadrants [3 5] {:width 11 :height 7})
+;; LL
+(split-into-quadrants [3 7] {:width 11 :height 7})
+;; RU
+(split-into-quadrants [5 5] {:width 11 :height 7})
+;; RL
+(split-into-quadrants [5 7] {:width 11 :height 7})
+(split-into-quadrants [5 4] {:width 11 :height 7})
+(split-into-quadrants [1 3] {:width 11 :height 7})
+
+
+
+(defn calc-safety-factor
+  [quadrants]
+  (let [allowed-quadrants (filter #(not= :M %) quadrants)
+        grouped-quadrants (group-by identity allowed-quadrants)
+        LU (count (:LU grouped-quadrants))
+        RU (count (:RU grouped-quadrants))
+        LL (count (:LL grouped-quadrants))
+        RL (count (:RL grouped-quadrants))
+        ]
+    (* LU RU LL RL)))
 
 (defn solve-part-1
   [filename]
-  (let [lines (io/read-input "day14/example.txt")
-                                        ;_ (println lines)
+  (let [lines (io/read-input "day14/input.txt")
+        ;;size {:width 11 :height 7}
+        size {:width 101 :height 103}
         cleaned-lines (map #(clean-string %) lines)
         parsed-lines (map #(parse-to-spec %) cleaned-lines)
-        _ (pp/pprint cleaned-lines)
-        _ (pp/pprint parsed-lines)
+        ;; _ (pp/pprint cleaned-lines)
+        ;; _ (pp/pprint parsed-lines)
         all-new-values (map #(multiply-position % 100) parsed-lines)
-        _ (pp/pprint all-new-values)
-        all-normalized (map #(normalize-position % {:width 11 :height 7}) all-new-values)
+        ;;_ (pp/pprint all-new-values)
+        all-normalized (map #(normalize-position % size) all-new-values)
         _ (pp/pprint all-normalized)
+        quadrants (map #(split-into-quadrants % size) all-normalized)
+        ;;_ (pp/pprint quadrants)
+        sum (calc-safety-factor quadrants)
+        _ (println sum)
+        ;; has-easter (is-easter-egg2? all-normalized [6 6])
+        ;; _ (println has-easter)
         ])
+  )
+
+
+
+
+(defn is-easter-egg2?
+  [normalized-points iter]
+  (let [mapped-by-x-val (group-by (fn [pos] (second pos)) normalized-points)
+        count-per-row (map #(count (get mapped-by-x-val %)) (keys mapped-by-x-val))
+        max-per-row (apply max count-per-row)
+        more-lines (count (filter #(> % 20) count-per-row))
+        _ (println "index: " iter "max per row:" max-per-row "average row size: ")
+        ]
+    (> more-lines 6))
+  )
+
+
+(defn solve-part-2
+  [filename]
+  (let [lines (io/read-input "day14/input.txt")
+        size {:width 101 :height 103}
+        cleaned-lines (map #(clean-string %) lines)
+        parsed-lines (map #(parse-to-spec %) cleaned-lines)
+        ]
+    (loop [index 6000]
+      (let [all-new-values (pmap #(multiply-position % index) parsed-lines)
+            all-normalized (pmap #(normalize-position % size) all-new-values)
+            _ (when (= 0 (mod index 1000)) (println "On index:" index))]
+        (if (is-easter-egg2? all-normalized index)
+          index
+          (recur (inc index))))
+      ))
+  )
+
+
+
+
+(defn print-board-for-iteration
+  []
+  (let [lines (io/read-input "day14/input.txt")
+        ;;size {:width 11 :height 7}
+        size {:width 101 :height 103}
+        iter 7037
+        cleaned-lines (pmap #(clean-string %) lines)
+        parsed-lines (pmap #(parse-to-spec %) cleaned-lines)
+        all-new-values (pmap #(multiply-position % iter) parsed-lines)
+        all-normalized (pmap #(normalize-position % size) all-new-values)
+        new-board (b/new 101 103)
+        filled-in-board (b/update-board-data new-board (vec (repeat (* 101 103) " ")))
+        filled-in-board2 (reduce (fn [board pos]
+                                   (b/set-pos (first pos) (second pos) board "*"))
+                                 filled-in-board
+                                 all-normalized)
+        _ (b/print-board filled-in-board2)
+        ]
+    )
   )
