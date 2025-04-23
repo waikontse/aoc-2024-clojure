@@ -163,13 +163,13 @@
 
 
 
-
 (defn is-easter-egg2?
   [normalized-points iter]
   (let [mapped-by-x-val (group-by (fn [pos] (second pos)) normalized-points)
         count-per-row (map #(count (get mapped-by-x-val %)) (keys mapped-by-x-val))
         max-per-row (apply max count-per-row)
         more-lines (count (filter #(> % 20) count-per-row))
+        longest-line (filter )
         _ (println "index: " iter "max per row:" max-per-row "average row size: ")
         ]
     (> more-lines 6))
