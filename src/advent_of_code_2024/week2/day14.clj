@@ -3,14 +3,13 @@
             [clojure.pprint :as pp]
             [advent-of-code-2024.utils.algorithms :as algo]
             [advent-of-code-2024.utils.board :as b]
-            )
-  )
+            ))
 
-(def pOrV #"(p\=|v\=)")
+(def p-or-v #"(p\=|v\=)")
 
 (defn clean-string
   [line]
-  (clojure.string/replace line pOrV ""))
+  (clojure.string/replace line p-or-v ""))
 
 (defn splitted-to-pair
   "E.g. 9,4 -> {:x 9 :y 4}"
@@ -48,11 +47,7 @@
   [position
    {:keys [width height]}
    ]
-  [(mod (first position) width) (mod (second position) height)]
-  )
-
-
-(def uneven? (complement even?))
+  [(mod (first position) width) (mod (second position) height)])
 
 (defn is-middle-helper
   [x-or-y width-or-height]
@@ -117,23 +112,6 @@
       ))
   )
 
-;; split into qadrants
-;; M
-(split-into-quadrants [4 3] {:width 11 :height 7})
-(split-into-quadrants [3 6] {:width 11 :height 7})
-;; LU
-(split-into-quadrants [3 5] {:width 11 :height 7})
-;; LL
-(split-into-quadrants [3 7] {:width 11 :height 7})
-;; RU
-(split-into-quadrants [5 5] {:width 11 :height 7})
-;; RL
-(split-into-quadrants [5 7] {:width 11 :height 7})
-(split-into-quadrants [5 4] {:width 11 :height 7})
-(split-into-quadrants [1 3] {:width 11 :height 7})
-
-
-
 (defn calc-safety-factor
   [quadrants]
   (let [allowed-quadrants (filter #(not= :M %) quadrants)
@@ -156,44 +134,39 @@
         all-normalized (map #(normalize-position % size) all-new-values)
         quadrants (map #(split-into-quadrants % size) all-normalized)
         sum (calc-safety-factor quadrants)
-        _ (println sum)
         ]
     sum)
   )
 
 
-
-(defn is-easter-egg2?
-  [normalized-points iter]
+(defn is-easter-egg?
+  [normalized-points]
   (let [mapped-by-x-val (group-by (fn [pos] (second pos)) normalized-points)
-        count-per-row (map #(count (get mapped-by-x-val %)) (keys mapped-by-x-val))
+        count-per-row (pmap #(count (get mapped-by-x-val %)) (keys mapped-by-x-val))
         max-per-row (apply max count-per-row)
-        more-lines (count (filter #(> % 20) count-per-row))
-        longest-line (filter )
-        _ (println "index: " iter "max per row:" max-per-row "average row size: ")
+        longest-line (first (filter #(= max-per-row (count %)) (vals mapped-by-x-val)))
+        consecutive (algo/longest-running-consecutive (sort (flatten (pmap #(first %) longest-line))))
         ]
-    (> more-lines 6))
+    (and (> consecutive 10)
+         (> max-per-row 30)))
   )
 
-
 (defn solve-part-2
-  [filename]
+  []
   (let [lines (io/read-input "day14/input.txt")
         size {:width 101 :height 103}
-        cleaned-lines (map #(clean-string %) lines)
-        parsed-lines (map #(parse-to-spec %) cleaned-lines)
+        cleaned-lines (pmap #(clean-string %) lines)
+        parsed-lines (pmap #(parse-to-spec %) cleaned-lines)
         ]
-    (loop [index 6000]
+    (loop [index 1]
       (let [all-new-values (pmap #(multiply-position % index) parsed-lines)
             all-normalized (pmap #(normalize-position % size) all-new-values)
             _ (when (= 0 (mod index 1000)) (println "On index:" index))]
-        (if (is-easter-egg2? all-normalized index)
+        (if (is-easter-egg? all-normalized)
           index
           (recur (inc index))))
       ))
   )
-
-
 
 
 (defn print-board-for-iteration
