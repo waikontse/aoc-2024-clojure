@@ -143,6 +143,28 @@
         ]
     [(/ dx d) (/ dy d)]))
 
+(defn longest-running-consecutive
+  ([numbers] (cond
+               (= 0 (count numbers)) 0
+               (= 1 (count numbers)) 1
+               :else (longest-running-consecutive (rest numbers) (first numbers) 1 1))
+   )
+  ([numbers previous cur-max-running max-running]
+   (loop [numbers-temp numbers
+          previous-temp previous
+          cur-max-running-temp cur-max-running
+          max-running-temp max-running]
+     (if (empty? numbers-temp)
+       max-running-temp
+       (let [head (first numbers-temp)
+             is-consecutive? (or (= (inc previous-temp) head) (nil? previous-temp))
+             new-max-running (if (true? is-consecutive?)
+                               (inc cur-max-running-temp)
+                               1)
+             ]
+         (recur (rest numbers-temp) (first numbers-temp) new-max-running (max new-max-running max-running-temp)))
+       ))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; END of linear algebra
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

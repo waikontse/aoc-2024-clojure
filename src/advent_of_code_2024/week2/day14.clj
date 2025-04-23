@@ -152,19 +152,13 @@
         size {:width 101 :height 103}
         cleaned-lines (map #(clean-string %) lines)
         parsed-lines (map #(parse-to-spec %) cleaned-lines)
-        ;; _ (pp/pprint cleaned-lines)
-        ;; _ (pp/pprint parsed-lines)
         all-new-values (map #(multiply-position % 100) parsed-lines)
-        ;;_ (pp/pprint all-new-values)
         all-normalized (map #(normalize-position % size) all-new-values)
-        _ (pp/pprint all-normalized)
         quadrants (map #(split-into-quadrants % size) all-normalized)
-        ;;_ (pp/pprint quadrants)
         sum (calc-safety-factor quadrants)
         _ (println sum)
-        ;; has-easter (is-easter-egg2? all-normalized [6 6])
-        ;; _ (println has-easter)
-        ])
+        ]
+    sum)
   )
 
 
