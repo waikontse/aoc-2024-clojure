@@ -118,7 +118,6 @@
   (->> (matrix-reduce-fully matrix)
        (matrix-simplify-fully)))
 
-
 (defn determinant
   [matrix]
   (let [row1 (first matrix)
@@ -168,3 +167,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; END of linear algebra
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn quick-sort
+  "docstring"
+  [xs]
+  (if (< (count xs) 1)
+    xs
+    (let [[pivot & rest] xs
+          left (filter #(<= % pivot) rest)
+          right (filter #(> % pivot) rest)]
+      (concat (quick-sort left) [pivot] (quick-sort right)))))

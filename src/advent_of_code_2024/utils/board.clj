@@ -234,8 +234,7 @@
 ;; Diagnostics
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn print-board
-  "docstring"
   [board]
   (let [rows (partition (:width board) (:board board))]
     (printf "Board width: %d height: %d%n" (:width board) (:height board))
-    (dorun (map #(apply println %) rows))))
+    (dorun (map #(println (apply str %)) rows))))
