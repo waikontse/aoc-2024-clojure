@@ -17,24 +17,33 @@
                                      raw-lines)]
     (flatten raw-instructions)))
 
-(def starter \@)
 
+(def starter \@)
 (defn find-starting-position
   [board]
   (for [x-pos (range (:width board))
         y-pos (range (:height board))
         :when (= starter (b/get-pos x-pos y-pos board))
         ]
-    {:x-pos x-pos :y-pos y-pos})
-  )
-
-(defn can-move?
-  [board curr-pos direction]
-  "TODO")
+    [x-pos y-pos]))
 
 (defn move
   [board curr-pos direction]
-  "TODO")
+  (let []
+    (cond
+      (= \> direction) "go right"
+      (= \< direction) "go left"
+      (= \^ direction) "go up"
+      (= \v direction) "go down"
+      :else "unknown")
+    ))
+
+(def empty-space \.)
+(defn can-move?
+  [line]
+  (boolean (some #(= % empty-space) line)))
+
+(can-move? [1 2 3 4 5 \x])
 
 (defn solve-part-1
   ""
