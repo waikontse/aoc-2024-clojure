@@ -41,3 +41,24 @@ great-name
              })
 
 (get my-map 2)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                        ; Try to implement map and filter with reduce
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn filter-with-reduce
+  [coll filter]
+  (reduce (fn [items item]
+            (if (filter item)
+              (conj items item)
+              items))
+          []
+          coll))
+
+(defn map-with-reduce
+  [coll f]
+  (reduce (fn [items item]
+            (conj items (f item)))
+          []
+          coll))
