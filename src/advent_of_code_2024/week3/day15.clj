@@ -10,14 +10,6 @@
         ]
     board))
 
-(defn parse-raw-lines-to-instructions
-  [raw-lines]
-  (let [raw-instructions (drop-while #(or (clojure.string/starts-with? % "#")
-                                          (clojure.string/blank? %))
-                                     raw-lines)]
-    (flatten raw-instructions)))
-
-
 (def starter \@)
 (defn find-starting-position
   [board]
@@ -27,9 +19,33 @@
         ]
     [x-pos y-pos]))
 
+(defn parse-raw-lines-to-instructions
+  [raw-lines]
+  (let [raw-instructions (drop-while #(or (clojure.string/starts-with? % "#")
+                                          (clojure.string/blank? %))
+                                     raw-lines)]
+    (clojure.string/join raw-instructions)))
+
+(defn get-direction-string
+  [board curr-pos direction]
+  (let [x-pos (first curr-pos)
+        y-pos (second curr-pos)
+        str (cond
+              (= \> direction) (b/get-data-right (inc x-pos) y-pos board (- (:width board) (inc x-pos)))
+              (= \< direction) (b/get-data-left (dec x-pos) y-pos board x-pos)
+              (= \^ direction) (b/get-data-top (x-pos) (dec y-pos) board y-pos)
+              (= \v direction) (b/get-data-bottom x-pos (inc y-pos) board (- (:height board) (inc y-pos)))
+              )
+        ]
+    str) ;; return empty vector for now
+  )
+
+
+;; TODO We need to decide when are on the edge. We cannot inc or dec beyond the edge.
 (defn move
   [board curr-pos direction]
-  (let []
+  (let [;; Get the current string
+        ]
     (cond
       (= \> direction) "go right"
       (= \< direction) "go left"
@@ -37,6 +53,18 @@
       (= \v direction) "go down"
       :else "unknown")
     ))
+
+(defn compress-way
+  ""
+  [str direction]
+  "Implement me")
+
+(defn update-board
+  ""
+  [curr-pos direction board]
+  "implement me")
+
+
 
 (def empty-space \.)
 (defn can-move?
@@ -54,7 +82,14 @@
         _ (b/print-board board)
         _ (println start-pos)
         instructions (parse-raw-lines-to-instructions raw-lines)
-        _ (println "move instructions: " instructions)
+        _ (println "move instructions: " instructions (count instructions))
+        str-left
         ]
     0)
   )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Try to implement
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
