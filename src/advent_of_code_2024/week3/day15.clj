@@ -64,29 +64,29 @@
   [curr-pos direction board]
   "implement me")
 
-
-
 (def empty-space \.)
+
 (defn can-move?
   [line]
   (boolean (some #(= % empty-space) line)))
 
 (can-move? [1 2 3 4 5 \x])
+(can-move? [1 2 3 4 5 \. \x])
 
-(defn solve-part-1
-  ""
-  [filename]
-  (let [raw-lines (io/read-input "day15/example.txt")
-        board (parse-raw-lines-to-board raw-lines)
-        start-pos (first (find-starting-position board))
-        _ (b/print-board board)
-        _ (println start-pos)
-        instructions (parse-raw-lines-to-instructions raw-lines)
-        _ (println "move instructions: " instructions (count instructions))
-        str-left
-        ]
-    0)
-  )
+;(defn solve-part-1
+;  ""
+;  [filename]
+;  (let [raw-lines (io/read-input "day15/example.txt")
+;        board (parse-raw-lines-to-board raw-lines)
+;        start-pos (first (find-starting-position board))
+;        _ (b/print-board board)
+;        _ (println start-pos)
+;        instructions (parse-raw-lines-to-instructions raw-lines)
+;        _ (println "move instructions: " instructions (count instructions))
+;        str-left
+;        ]
+;    0)
+;  )
 
 
 
