@@ -14,7 +14,7 @@
         upper (io/str->int (get splitted 1))
         _ (println "lower and upper" lower upper)
         ]
-    {"lower-int" lower "upper-int" upper "lower-str" (get splitted 0) "upper-str" (get-splitted-1)})
+    {"lower-int" lower "upper-int" upper "lower-str" (get splitted 0) "upper-str" (get splitted 1)})
   )
 
 
@@ -28,15 +28,27 @@
 
 (defn is-within-range?
   ""
-  [target spec]
-  false)
-
-(defn is-palindrome?
-  "Only that has repeated numbers twice. 55 returns true, while 101 returns false."
-  [target]
-  false)
+  [target upper-bound]
+  (<= target upper-bound))
 
 
+(defn can-skip?
+  [spec]
+  (let [lower-str (get spec "lower-str")
+        upper-str (get spec "upper-str")
+        lower-is-uneven? (not (even? (count lower-str)))
+        upper-is-uneven? (not (even? (count upper-str)))
+        is-same-length? (= (count lower-str) (count upper-str))
+        ]
+    (and lower-is-uneven? upper-is-uneven? is-same-length?)))
+
+(defn gen-candidates
+  [lower-bound upper-bound]
+  (range lower-bound (inc upper-bound)))
+
+(gen-candidates 9 23)
+
+(can-skip? (split-range-into-spec "123-1234"))
 
 (defn solve-part-1
   ""
