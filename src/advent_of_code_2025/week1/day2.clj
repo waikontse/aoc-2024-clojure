@@ -14,8 +14,16 @@
         upper (io/str->int (get splitted 1))
         _ (println "lower and upper" lower upper)
         ]
-    {"lower" lower "upper" upper})
+    {"lower-int" lower "upper-int" upper "lower-str" (get splitted 0) "upper-str" (get-splitted-1)})
   )
+
+
+;; Specs cases
+;; even - even -> split str in half and generate and filter
+;; even - uneven -> split str in half and generate till next length
+;; uneven - even ->
+;; uneven - uneven -> ignore
+
 
 
 (defn is-within-range?
