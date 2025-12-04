@@ -8,65 +8,78 @@
 
 (defn split-range-into-spec
   [range]
-  (let [splitted (clojure.string/split range #"-")
-        _ (println "range and splitted" range splitted)
+  (let [splitted (clojure.string/split (clojure.string/trim range) #"-")
+        ;;_ (println "range and splitted" range splitted)
         lower (io/str->int (get splitted 0))
         upper (io/str->int (get splitted 1))
-        _ (println "lower and upper" lower upper)
+        ;;_ (println "lower and upper" lower upper)
         ]
-    {"lower-int" lower "upper-int" upper "lower-str" (get splitted 0) "upper-str" (get splitted 1)})
+    {"lower" lower "upper" upper})
   )
 
-
-;; Specs cases
-;; even - even -> split str in half and generate and filter
-;; even - uneven -> split str in half and generate till next length
-;; uneven - even ->
-;; uneven - uneven -> ignore
-
-
-
-(defn is-within-range?
-  ""
-  [target upper-bound]
-  (<= target upper-bound))
-
-
-(defn can-skip?
-  [spec]
-  (let [lower-str (get spec "lower-str")
-        upper-str (get spec "upper-str")
-        lower-is-uneven? (not (even? (count lower-str)))
-        upper-is-uneven? (not (even? (count upper-str)))
-        is-same-length? (= (count lower-str) (count upper-str))
+(defn is-mirrored-faulty?
+  [target partition-count]
+  (let [str-format (str target)
+        length (count str-format)
+        n (int (Math/ceil (/ length partition-count)))
+        ;;_ (println "partition size:" n)
+        partitions (partition n n "z" str-format)
+        _ (clojure.pprint/pprint partitions)
         ]
-    (and lower-is-uneven? upper-is-uneven? is-same-length?)))
+    (and (not= 1 length) (apply = partitions))))
+
+(is-mirrored-faulty? 1212121212 2)
+
+(defn is-mirrored-simple?
+  [target]
+  (let [str-format (str target)
+        half-point (/ (count str-format) 2)
+        left (subs str-format 0 half-point)
+        right (subs str-format half-point)
+        ;;_ (println "partition size:" n)
+        ;;_ (clojure.pprint/pprint partitions)
+        ]
+    (= left right)))
+
+(is-mirrored-simple? 99)
 
 (defn gen-candidates
-  [lower-bound upper-bound]
-  (range lower-bound (inc upper-bound)))
+  [spec]
+  (range (get spec "lower") (inc (get spec "upper"))))
 
-(gen-candidates 9 23)
-
-(can-skip? (split-range-into-spec "123-1234"))
+(defn find-mirrors-for-spec
+  [spec]
+  (let [values (gen-candidates spec)
+        filtered-values (filter #(is-mirrored-faulty? % 2) values)
+        ]
+    filtered-values))
 
 (defn solve-part-1
-  ""
   [input]
-  0)
+  (let [splitted (clojure.string/split input #",")
+        specs (map #(split-range-into-spec %) splitted)
+        valid-values-for-specs (map #(find-mirrors-for-spec %) specs)
+        ;;_ (clojure.pprint/pprint specs)
+        _ (clojure.pprint/pprint valid-values-for-specs)
+        ]
+    (->> (flatten valid-values-for-specs)
+         (apply +)
+         )))
+
+;; 1227775554
+(solve-part-1 example)
+
+;; 21898734247
+(println (solve-part-1 input))
 
 (defn solve-part-2
   ""
   [input]
   )
 
+;; 4174379265
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Testing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def a (clojure.string/split example #","))
-(def b (map #(split-range-into-spec %) a))
-b
-(->> (map #(split-range-into-spec %) a)
-     (pprint/pprint))
