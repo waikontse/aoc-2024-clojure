@@ -24,62 +24,59 @@
         n (int (Math/ceil (/ length partition-count)))
         ;;_ (println "partition size:" n)
         partitions (partition n n "z" str-format)
-        _ (clojure.pprint/pprint partitions)
+        ;;_ (clojure.pprint/pprint partitions)
         ]
     (and (not= 1 length) (apply = partitions))))
 
 (is-mirrored-faulty? 1212121212 2)
 
-(defn is-mirrored-simple?
-  [target]
-  (let [str-format (str target)
-        half-point (/ (count str-format) 2)
-        left (subs str-format 0 half-point)
-        right (subs str-format half-point)
-        ;;_ (println "partition size:" n)
-        ;;_ (clojure.pprint/pprint partitions)
-        ]
-    (= left right)))
-
-(is-mirrored-simple? 99)
-
 (defn gen-candidates
   [spec]
   (range (get spec "lower") (inc (get spec "upper"))))
 
+
 (defn find-mirrors-for-spec
-  [spec]
+  [spec max-partitions]
   (let [values (gen-candidates spec)
-        filtered-values (filter #(is-mirrored-faulty? % 2) values)
-        ]
-    filtered-values))
+        partition-sizes (range 2 (inc max-partitions))
+        filtered-values (map (fn [partition-size]
+                               (filter #(is-mirrored-faulty? % partition-size) values))
+                             partition-sizes)]
+    (->> (flatten filtered-values)
+         (distinct))))
+
 
 (defn solve-part-1
   [input]
   (let [splitted (clojure.string/split input #",")
         specs (map #(split-range-into-spec %) splitted)
-        valid-values-for-specs (map #(find-mirrors-for-spec %) specs)
-        ;;_ (clojure.pprint/pprint specs)
-        _ (clojure.pprint/pprint valid-values-for-specs)
+        valid-values-for-specs (map #(find-mirrors-for-spec % 2) specs)
         ]
     (->> (flatten valid-values-for-specs)
          (apply +)
          )))
 
-;; 1227775554
-(solve-part-1 example)
 
-;; 21898734247
-(println (solve-part-1 input))
-
-(defn solve-part-2
-  ""
-  [input]
+(defn max-length-spec
+  [spec]
+  (->> (get spec "upper")
+       (str)
+       (count))
   )
 
+(max-length-spec {"lower" 11 "upper" 1141})
+
+(defn solve-part-2
+  [input]
+  (let [splitted (clojure.string/split input #",")
+        specs (map #(split-range-into-spec %) splitted)
+        valid-values-for-specs (map (fn [spec]
+                                      (find-mirrors-for-spec spec (max-length-spec spec)))
+                                    specs)
+        ]
+    (->> (flatten valid-values-for-specs)
+         (apply +)
+         )))
+
 ;; 4174379265
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Testing
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(solve-part-2 input)
