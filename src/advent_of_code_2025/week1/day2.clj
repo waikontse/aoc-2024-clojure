@@ -9,74 +9,57 @@
 (defn split-range-into-spec
   [range]
   (let [splitted (clojure.string/split (clojure.string/trim range) #"-")
-        ;;_ (println "range and splitted" range splitted)
         lower (io/str->int (get splitted 0))
         upper (io/str->int (get splitted 1))
-        ;;_ (println "lower and upper" lower upper)
         ]
-    {"lower" lower "upper" upper})
-  )
+    {"lower" lower "upper" upper}))
 
-(defn is-mirrored-faulty?
+(defn is-mirrored?
   [target partition-count]
   (let [str-format (str target)
         length (count str-format)
         n (int (Math/ceil (/ length partition-count)))
-        ;;_ (println "partition size:" n)
         partitions (partition n n "z" str-format)
-        ;;_ (clojure.pprint/pprint partitions)
         ]
     (and (not= 1 length) (apply = partitions))))
-
-(is-mirrored-faulty? 1212121212 2)
 
 (defn gen-candidates
   [spec]
   (range (get spec "lower") (inc (get spec "upper"))))
-
 
 (defn find-mirrors-for-spec
   [spec max-partitions]
   (let [values (gen-candidates spec)
         partition-sizes (range 2 (inc max-partitions))
         filtered-values (map (fn [partition-size]
-                               (filter #(is-mirrored-faulty? % partition-size) values))
+                               (filter #(is-mirrored? % partition-size) values))
                              partition-sizes)]
     (->> (flatten filtered-values)
          (distinct))))
-
-
-(defn solve-part-1
-  [input]
-  (let [splitted (clojure.string/split input #",")
-        specs (map #(split-range-into-spec %) splitted)
-        valid-values-for-specs (map #(find-mirrors-for-spec % 2) specs)
-        ]
-    (->> (flatten valid-values-for-specs)
-         (apply +)
-         )))
-
 
 (defn max-length-spec
   [spec]
   (->> (get spec "upper")
        (str)
-       (count))
-  )
+       (count)))
 
-(max-length-spec {"lower" 11 "upper" 1141})
-
-(defn solve-part-2
-  [input]
+(defn solve-problem
+  [input calc]
   (let [splitted (clojure.string/split input #",")
         specs (map #(split-range-into-spec %) splitted)
-        valid-values-for-specs (map (fn [spec]
-                                      (find-mirrors-for-spec spec (max-length-spec spec)))
-                                    specs)
+        valid-values-for-specs (calc specs)
         ]
     (->> (flatten valid-values-for-specs)
          (apply +)
          )))
 
-;; 4174379265
-(solve-part-2 input)
+
+(defn solve-part-1
+  [input]
+  (solve-problem input
+                 (fn [specs] (map #(find-mirrors-for-spec % 2) specs))))
+
+(defn solve-part-2
+  [input]
+  (solve-problem input
+                 (fn [specs] (map (fn [spec] (find-mirrors-for-spec spec (max-length-spec spec))) specs))))
