@@ -17,18 +17,18 @@
   [raw-input]
   (let [splitted (clojure.string/split-lines raw-input)
         index-of-split (.indexOf splitted "")
-        _ (println index-of-split)
         converted-ranges (->> (subvec splitted 0 index-of-split)
                               (map #(convert-raw-range %))
                               (sort-by :start)
-                              )
-        ingredients (subvec splitted (inc index-of-split))
+                              (vec))
+        ingredients (map #(io/str->int %) (subvec splitted (inc index-of-split)))
         ]
     {:ranges converted-ranges :ingredients ingredients})
   )
 
 (defn is-fresh-ingredient?
   [fresh-range ingredient-id]
+  ;(println "Fresh range: " fresh-range ingredient-id)
   (and (>= ingredient-id (:start fresh-range))
        (<= ingredient-id (:end fresh-range)))
   )
@@ -48,18 +48,62 @@
         (recur (rest fresh-ranges-left) is-fresh?))))
   )
 
-(parse-input-to-puzzle example)
-
 (defn solve
   [input]
   (let [parsed-puzzle (parse-input-to-puzzle input)
         fresh-ingredients (reduce (fn [coll item]
-                                    (when (is-fresh-ingredient-recur? (:ranges parsed-puzzle) (:ingredients parsed-puzzle))
-                                      (conj coll item))
-                                    )
+                                    (if (is-fresh-ingredient-recur? (:ranges parsed-puzzle) item)
+                                      (conj coll item)
+                                      coll))
                                   []
-                                  (:ingredients parsed-puzzle))]
-    fresh-ingredients)
+                                  (:ingredients parsed-puzzle))
+        ]
+    (count fresh-ingredients))
   )
 
-(solve example)
+(defn can-merge-range?
+  "Left range starts before the right range."
+  [left-range right-range]
+  (and (<= (:start left-range) (:start right-range))
+       (>= (:end left-range) (:start right-range))
+       ))
+
+(defn merge-ranges
+  "Try to merge ranges which overlaps"
+  [left-range right-range]
+  (let [new-start-range (min (:start left-range) (:start right-range))
+        new-end-range (max (:end left-range) (:end right-range))
+        ]
+    {:start new-start-range :end new-end-range}))
+
+(defn merge-all-ranges
+  "Try to merge all range descriptions"
+  [ranges]
+  (loop [curr-pos 0
+         acc ranges]
+    (if (= curr-pos (dec (count acc)))
+      acc
+      (let [curr-range (get acc curr-pos)
+            next-range (get acc (inc curr-pos))
+            can-merge? (can-merge-range? curr-range next-range)
+            new-curr-pos (if (true? can-merge?) curr-pos (inc curr-pos))
+            new-ranges (if (true? can-merge?)
+                         (->> (merge-ranges curr-range next-range)
+                              (assoc-in acc [curr-pos])
+                              (io/vec-remove (inc curr-pos))) ; 1. update merged value at position
+                                                         ; 2. Remove the next item
+                         acc)
+            ]
+        (recur new-curr-pos new-ranges)))
+    ))
+
+(defn count-range-length
+  [range]
+  (->> (- (:end range) (:start range))
+       (inc)))
+
+(->> (merge-all-ranges (:ranges (parse-input-to-puzzle input)))
+     (map #(count-range-length %))
+     (apply +))
+
+(solve input)

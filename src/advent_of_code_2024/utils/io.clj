@@ -27,7 +27,7 @@
   (map #(char->str %) coll))
 
 (defn str->int
-  "Convert a string to integer"
+  "Convert a string to long"
   [str]
   (Long/parseLong str))
 
