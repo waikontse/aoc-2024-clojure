@@ -7,13 +7,9 @@
 
 (defn raw-string-to-ints
   [raw-string]
-  (->> (clojure.string/split (clojure.string/trim raw-string) #" {1,1}")
-       ;(map #(io/str->int %))
-       )
+  (->> (clojure.string/split (clojure.string/trim raw-string) #" +")
+       (map #(io/str->int %)))
   )
-(raw-string-to-ints "123 328  51 64")
-
-(clojure.string/split-lines example)
 
 (raw-string-to-ints "6 7 8 9")
 
@@ -30,14 +26,13 @@
     combined)
   )
 
-(parse-to-raw-lines example)
-
 (println (apply map vector (parse-to-raw-lines example)))
 
 (defn eval-line
-  [line transformer]
+  "docstring"
+  [line]
   (let [op (first line)
-        args (transformer (rest line))
+        args (rest line)
         ]
     (cond
       (= "+" op) (apply + args)
@@ -50,46 +45,73 @@
 (defn solve-part-1
   [input]
   (let [parsed-input (apply map vector (parse-to-raw-lines input))
-        eval-parsed-input (map #(eval-line % identity) parsed-input)
+        ;_ (println parsed-input)
+        eval-parsed-input (map #(eval-line %) parsed-input)
         ]
     (apply + eval-parsed-input))
   )
 (solve-part-1 input)
 
 
-(defn transpose-numbers
-  [coll]
-  (let [_ (println "transposing: " coll)
-        str-coll (map #(str %) coll)
-        max-length (apply max (map #(count %) str-coll))
-        transposed (->> (range max-length)
-                        (map (fn [pos]
-                               (map #(get % pos) str-coll)))
-                        (map #(apply str %))
-                        (map #(io/str->int %)))
-        _ (clojure.pprint/pprint transposed)]
-    transposed)
+;;;;;;; Solution part 2
+(defn eval-line-2
+  [lines]
+  (let [op (first lines)
+        rest (rest lines)
+        converted-rest (->> (map #(clojure.string/trim %) rest)
+                            (io/strs->ints))
+        ]
+    (cons op converted-rest))
   )
 
-;; 3263827
+(eval-line (eval-line-2 ["+" "123" " 45" "  6"]))
+
+(defn get-nth-for-all
+  [nth strings]
+  (apply str (map #(get % nth) strings)))
+
+
+(defn prepare-numbers
+  [from to-inclusive lines]
+  (map #(get-nth-for-all % lines) (range from (inc to-inclusive)))
+  )
+
+(defn find-split-indexes
+  [lines]
+  (let [numbers (drop-last lines)
+        ops (clojure.string/split (last lines) #" +")
+        ]
+    (for [x (range 0 (count (first numbers)))
+          :let [column (get-nth-for-all x numbers)
+                split x]
+          :when (clojure.string/blank? column)
+          ]
+      split)
+    )
+  )
 
 (defn solve-part-2
+  "docstring"
   [input]
-  (let [parsed-input (apply map vector (parse-to-raw-lines input))
-        eval-parsed-input (map #(eval-line % transpose-numbers) parsed-input)
-        ]
-    (apply + eval-parsed-input))
-  )
-
-;The rightmost problem is 4 + 431 + 623 = 1058
-;The second problem from the right is 175 * 581 * 32 = 3253600
-;The third problem from the right is 8 + 248 + 369 = 625
-;Finally, the leftmost problem is 356 * 24 * 1 = 8544
-;Now, the grand total is 1058 + 3253600 + 625 + 8544 = 3263827.
-
-(solve-part-2 example)
+  0)
 
 
 
-(transpose-numbers ["64" "23" "314"])
-(transpose-numbers [64 23 314])
+(->> (clojure.string/split-lines example)
+     (drop-last)
+     (prepare-numbers 0 2)
+     (cons "*")
+     (eval-line-2)
+     (eval-line))
+
+
+;; experiments to solve part 2
+
+(find-split-indexes (clojure.string/split-lines example))
+
+(get-nth-for-all 3 (clojure.string/split-lines example))
+(get-nth-for-all 0 ["1 2 3" "4 5 6" "7 8 9"])
+
+(io/str->int (clojure.string/trim "   4"))
+
+(clojure.string/blank? "   ")
