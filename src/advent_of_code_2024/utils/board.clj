@@ -61,21 +61,20 @@
 (defn parse-to-board
   [raw-lines]
   (let [flattened-data (->>
-                         (map #(vec (seq %1)) raw-lines)
-                         (flatten)
-                         (vec))
+                        (map #(vec (seq %1)) raw-lines)
+                        (flatten)
+                        (vec))
         width (count (first raw-lines))
         height (count raw-lines)
-        empty-board (advent-of-code-2024.utils.board/new width height)
-        ]
+        empty-board (advent-of-code-2024.utils.board/new width height)]
     (update-board-data empty-board flattened-data)))
 
 (defn set-pos
   "Set the item at position X and position Y into the *new* board"
   [xPos yPos board item]
   (let [updated-board-value (assoc
-                              (:board board)
-                              (get-internal-position xPos yPos board) item)]
+                             (:board board)
+                             (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
 
 (defn can-get-data-left?
@@ -90,7 +89,6 @@
   (let [fetched-values (mapv #(get-pos (- xPos %) yPos board) (range length))]
     fetched-values))
 
-
 (defn can-get-data-right?
   [xPos board length]
   (and (< (+ xPos (dec length)) (:width board))
@@ -102,7 +100,6 @@
   (let [fetched-values (mapv #(get-pos (+ xPos %) yPos board) (range length))]
     fetched-values))
 
-
 (defn can-get-data-top?
   [yPos board length]
   (and (>= (- yPos (dec length)) 0)
@@ -113,7 +110,6 @@
   [xPos yPos board length]
   (let [fetched-values (mapv #(get-pos xPos (- yPos %) board) (range length))]
     fetched-values))
-
 
 (defn can-get-data-bottom?
   [yPos board length]
@@ -137,7 +133,6 @@
   (let [fetched-values (mapv #(get-pos (- xPos %) (- yPos %) board) (range length))]
     fetched-values))
 
-
 (defn can-get-data-top-right
   [xPos yPos board length]
   (and (can-get-data-top? yPos board length)
@@ -154,13 +149,11 @@
   (and (can-get-data-bottom? yPos board length)
        (can-get-data-left? xPos board length)))
 
-
 (defn get-data-bottom-left
   "docstring"
   [xPos yPos board length]
   (let [fetched-values (mapv #(get-pos (- xPos %) (+ yPos %) board) (range length))]
     fetched-values))
-
 
 (defn can-get-data-bottom-right?
   [xPos yPos board length]
@@ -191,6 +184,19 @@
   {:x-pos (inc (:x-pos pos)) :y-pos (:y-pos pos)})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Finding / searching in the board
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn find-all-chars-in-board
+  [board target]
+  (let [width (:width board)
+        height (:height board)]
+    (for [x (range 0 width)
+          y (range 0 height)
+          :let [currPos (get-pos x y board)]
+          :when (= target currPos)]
+      [x y])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; testing board properties
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn is-same-symbol?
@@ -199,36 +205,35 @@
     (let [symbol (get-pos (:x-pos curr-pos) (:y-pos curr-pos) board)
           next-symbol (f-next curr-pos)]
       (= symbol next-symbol))
-    false)
-  )
+    false))
 
 (defn is-same-symbol-left?
   [board curr-pos]
   (is-same-symbol?
-    board curr-pos
-    (can-get-data-left? (:x-pos curr-pos) board 2)
-    #(last (get-data-left (:x-pos %) (:y-pos %) board 2))))
+   board curr-pos
+   (can-get-data-left? (:x-pos curr-pos) board 2)
+   #(last (get-data-left (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-right?
   [board curr-pos]
   (is-same-symbol?
-    board curr-pos
-    (can-get-data-right? (:x-pos curr-pos) board 2)
-    #(last (get-data-right (:x-pos %) (:y-pos %) board 2))))
+   board curr-pos
+   (can-get-data-right? (:x-pos curr-pos) board 2)
+   #(last (get-data-right (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-top?
   [board curr-pos]
   (is-same-symbol?
-    board curr-pos
-    (can-get-data-top? (:y-pos curr-pos) board 2)
-    #(last (get-data-top (:x-pos %) (:y-pos %) board 2))))
+   board curr-pos
+   (can-get-data-top? (:y-pos curr-pos) board 2)
+   #(last (get-data-top (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-bottom?
   [board curr-pos]
   (is-same-symbol?
-    board curr-pos
-    (can-get-data-bottom? (:y-pos curr-pos) board 2)
-    #(last (get-data-bottom (:x-pos %) (:y-pos %) board 2))))
+   board curr-pos
+   (can-get-data-bottom? (:y-pos curr-pos) board 2)
+   #(last (get-data-bottom (:x-pos %) (:y-pos %) board 2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Diagnostics
