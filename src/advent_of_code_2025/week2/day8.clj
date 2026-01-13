@@ -31,8 +31,8 @@
          connected-boxes {}
          connected-count 0]
     (cond
-      (= max-connections connected-count) connected-boxes
-      (empty? prioritized-dist) (throw (Exception. "Not expected. Limit not reached, but targets are finished."))
+      (<= max-connections connected-count) (do (println "Finished, connected:" connected-count) connected-boxes)
+      (empty? prioritized-dist) connected-boxes
 
       :else
       (let [curr (first prioritized-dist)
@@ -43,7 +43,7 @@
             from-connected-to (get seen from)
             to-connected-to (get seen to)
             _ (clojure.pprint/pprint connected-boxes)
-            _ (clojure.pprint/pprint seen)
+            ;_ (clojure.pprint/pprint seen)
             _ (println "connected-count:" connected-count)
             ]
         (cond
@@ -64,7 +64,7 @@
                                                      (rest prioritized-dist)
                                                      (assoc seen from to-connected-to)
                                                      (assoc connected-boxes to-connected-to (conj (get connected-boxes to-connected-to) from))
-                                                     (inc connected-boxes))
+                                                     (inc connected-count))
 
           ;; Connect when :from is unconnected, and :to is unconnected
           (and (false? from-is-seen?) (false? to-is-seen?)) (recur
@@ -98,19 +98,26 @@
 
 
 (defn solve-part-1
-  [input]
+  [input limit]
   (let [raw-lines (clojure.string/split-lines input)
         points (parse-lines-to-points raw-lines)
-        _ (clojure.pprint/pprint points)
+        ;_ (clojure.pprint/pprint points)
         all-distances (calc-distance-all-pairs points)
         all-distances-combined (flatten all-distances)
         ;_ (clojure.pprint/pprint all-distances-combined)
         sorted-all-distances-combined (sort-by #(:distance %) all-distances-combined)
-        _ (clojure.pprint/pprint sorted-all-distances-combined)
-        connected (connect-junction-boxes sorted-all-distances-combined 10)
+        ;_ (clojure.pprint/pprint sorted-all-distances-combined)
+        connected (connect-junction-boxes sorted-all-distances-combined limit)
         _ (clojure.pprint/pprint connected)
+        result (->> (vals connected)
+                    (map #(inc (count %)))
+                    (sort)
+                    (reverse)
+                    (take 3)
+                    (apply *))
+        _ (println "result" result)
         ]
-    0)
+    result)
   )
 
-(solve-part-1 example)
+(solve-part-1 example 10)
