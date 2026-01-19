@@ -57,9 +57,7 @@
          positions [[x y]]
         ]
     (let [curr-pos (first positions)
-          [x y] curr-pos
-          ;;_ (println "marking position:" curr-pos)
-          ]
+          [x y] curr-pos]
       (cond
         (empty? positions) updated-board
         (board/is-off-board? x y updated-board) (recur updated-board (rest positions))
