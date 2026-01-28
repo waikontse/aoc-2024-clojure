@@ -117,19 +117,19 @@
   )
 
 (defn solve-part-2
-  []
-  (let [split-lines (clojure.string/split-lines example)
+  [input]
+  (let [split-lines (clojure.string/split-lines input)
         points (parse-raw-lines-to-points split-lines)
         connection-points (create-connection-points points)
-        _ (println points)
+        ;_ (println points)
         _ (clojure.pprint/pprint connection-points)
-        board (create-matching-board points)
-        new-board (connect-points-on-board connection-points board)
-        _ (board/print-board new-board)
+        ;board (create-matching-board points)
+        ;new-board (connect-points-on-board connection-points board)
+        ;_ (board/print-board new-board)
         ]
     0)
   )
-(solve-part-2)
+(solve-part-2 input)
 
 (for [x (range 1 2)
       y (range 1 3)]

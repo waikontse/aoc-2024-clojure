@@ -95,6 +95,5 @@
         ]
     activated-tachyons)
   )
-;; faulty 1735
-;; faulty 91
+
 (solve-part-1 input)

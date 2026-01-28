@@ -176,3 +176,87 @@
           left (filter #(<= % pivot) rest)
           right (filter #(> % pivot) rest)]
       (concat (quick-sort left) [pivot] (quick-sort right)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; START of POLYGON
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn to-vec
+  "convert 2 points to vector"
+  [point-a point-b]
+  (let [new-x (- (first point-b) (first point-a))
+        new-y (- (second point-b) (second point-a))
+        ]
+    {:x new-x :y new-y})
+  )
+
+;double cross(vec a, vec b) { return a.x * b.y - a.y * b.x; }
+(defn cross
+  "docstring"
+  [vec-a vec-b]
+  (- (* (:x vec-a) (:y vec-b))
+     (* (:y vec-a) (:x vec-b)))
+  )
+
+;boolean ccw(point p, point q, point r) {
+;                                        return cross(toVec(p, q), toVec(p, r)) > 0; }
+(defn is-ccw?
+  "note: to accept collinear points, we have to change the `> 0
+   // returns true if point r is on the left side of line pq"
+  [point-p point-q point-r]
+  (> (cross (to-vec point-p point-q) (to-vec point-q point-r)) 0)
+  )
+
+;double dot(vec a, vec b) { return (a.x * b.x + a.y * b.y); }
+(defn dot
+  [vec-a vec-b]
+  (+ (* (:x vec-a) (:x vec-b))
+     (* (:y vec-a) (:y vec-b)))
+  )
+
+;double norm_sq(vec v) { return v.x * v.x + v.y * v.y; }
+(defn norm-sq
+  "docstring"
+  [vec-v]
+  (+ (* (:x vec-v) (:x vec-v))
+     (* (:y vec-v) (:y vec-v))
+    )
+  )
+
+;double angle(point a, point o, point b) {     // returns angle aob in rad
+;   vec oa = toVec(o, a), ob = toVec(o, b);
+;   return Math.acos(dot(oa, ob) / Math.sqrt(norm_sq(oa) * norm_sq(ob)));
+;}
+(defn angle
+  "Returns angle aob in rad"
+  [point-a point-o point-b]
+  (let [oa (to-vec point-o point-a)
+        ob (to-vec point-o point-b)
+        dot (dot oa ob)
+        sqrt (clojure.math/sqrt (* (norm-sq oa) (norm-sq ob)))
+        ]
+    (clojure.math/acos (/ dot sqrt)))
+  )
+
+
+;// returns true if point p is in either convex/concave polygon P
+;boolean inPolygon(point pt, List<point> P) {
+;                                            if ((int)P.size() == 0) return false;
+;                                            double sum = 0; // assume first vertex = last vertex
+;                                            for (int i = 0; i < (int)P.size()-1; i++) {
+;                                                     if (ccw(pt, P.get(i), P.get(i+1)))
+;                                                     sum += angle(P.get(i), pt, P.get(i+1));   // left turn/ccw
+;                                                     else sum -= angle(P.get(i), pt, P.get(i+1)); } // right turn/cw
+;                                                     return Math.abs(Math.abs(sum) - 2*Math.PI) < EPS; }
+(defn in-polygon?
+  "docstring"
+  [point points-of-polygon]
+  (cond
+    (zero? (count points-of-polygon)) false
+    :else
+    (loop [[first & rest] points-of-polygon
+
+           ]
+      )
+    )
+  )
