@@ -1,6 +1,7 @@
 (ns advent-of-code-2025.week2.day9
   (:require [advent-of-code-2024.utils.io :as io])
   (:require [advent-of-code-2024.utils.board :as board])
+  (:require [advent-of-code-2024.utils.algorithms :as algo])
   )
 
 (def example (slurp "./resources/y2025/day9/example.txt"))
@@ -122,15 +123,21 @@
         points (parse-raw-lines-to-points split-lines)
         connection-points (create-connection-points points)
         ;_ (println points)
-        _ (clojure.pprint/pprint connection-points)
+        ;   _ (clojure.pprint/pprint connection-points)
         ;board (create-matching-board points)
         ;new-board (connect-points-on-board connection-points board)
         ;_ (board/print-board new-board)
         ]
     0)
   )
-(solve-part-2 input)
+;(solve-part-2 input)
 
-(for [x (range 1 2)
-      y (range 1 3)]
-  (println x y))
+(def simple-square [[1 1] [5 1] [5 5] [1 5] [1 1]])
+
+(algo/in-polygon? [5 6] simple-square)
+(algo/is-on-polygon-edge? [0 0] simple-square)
+
+;(algo/is-ccw? [2 4] [1 1] [3 3])
+(algo/angle [2 4] [1 1] [3 3])
+
+

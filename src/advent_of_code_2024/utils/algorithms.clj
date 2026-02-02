@@ -1,13 +1,16 @@
 (ns advent-of-code-2024.utils.algorithms
-  (:require [advent-of-code-2024.utils.board :as board]))
+  (:require [advent-of-code-2024.utils.board :as board]
+            [clojure.math])
+  )
 
 (def not-contains? (complement contains?))
+(def EPS 1e-9)
 
 (defn next-flood-fill-steps
   "Determine the nex possible steps for the flood-fill algorithm"
   [board curr-pos seen]
-  (let [left-pos  (-> (board/is-same-symbol-left? board curr-pos)
-                      (when (board/get-pos-left curr-pos)))
+  (let [left-pos (-> (board/is-same-symbol-left? board curr-pos)
+                     (when (board/get-pos-left curr-pos)))
         right-pos (-> (board/is-same-symbol-right? board curr-pos)
                       (when (board/get-pos-right curr-pos)))
         top-pos (-> (board/is-same-symbol-top? board curr-pos)
@@ -190,7 +193,6 @@
     {:x new-x :y new-y})
   )
 
-;double cross(vec a, vec b) { return a.x * b.y - a.y * b.x; }
 (defn cross
   "docstring"
   [vec-a vec-b]
@@ -198,8 +200,6 @@
      (* (:y vec-a) (:x vec-b)))
   )
 
-;boolean ccw(point p, point q, point r) {
-;                                        return cross(toVec(p, q), toVec(p, r)) > 0; }
 (defn is-ccw?
   "note: to accept collinear points, we have to change the `> 0
    // returns true if point r is on the left side of line pq"
@@ -207,26 +207,26 @@
   (> (cross (to-vec point-p point-q) (to-vec point-q point-r)) 0)
   )
 
-;double dot(vec a, vec b) { return (a.x * b.x + a.y * b.y); }
 (defn dot
   [vec-a vec-b]
   (+ (* (:x vec-a) (:x vec-b))
      (* (:y vec-a) (:y vec-b)))
   )
 
-;double norm_sq(vec v) { return v.x * v.x + v.y * v.y; }
+(defn dist
+  [point1 point2]
+  (let [p1x-p2x (- (first point1) (first point2))
+        p1y-p2y (- (second point1) (second point2))
+        ]
+    (clojure.math/hypot p1x-p2x p1y-p2y)))
+
 (defn norm-sq
   "docstring"
   [vec-v]
   (+ (* (:x vec-v) (:x vec-v))
      (* (:y vec-v) (:y vec-v))
-    )
-  )
+     ))
 
-;double angle(point a, point o, point b) {     // returns angle aob in rad
-;   vec oa = toVec(o, a), ob = toVec(o, b);
-;   return Math.acos(dot(oa, ob) / Math.sqrt(norm_sq(oa) * norm_sq(ob)));
-;}
 (defn angle
   "Returns angle aob in rad"
   [point-a point-o point-b]
@@ -238,25 +238,37 @@
     (clojure.math/acos (/ dot sqrt)))
   )
 
+(defn is-on-polygon-edge?
+  [point point-of-polygon]
+  (cond
+    (empty? point-of-polygon) false
+    :else
+    (loop [[x & xs] point-of-polygon
+           on-polygon false
+           ]
+      (cond
+        (empty? xs) on-polygon
+        (true? on-polygon) true
+        :else
+        (let [dist-pi-p (dist x point)
+              dist-p-pi1 (dist point (first xs))
+              dist-pi+pi1 (dist x (first xs))
+              is-on-polygon? (< (Math/abs (- (+ dist-pi-p dist-p-pi1) dist-pi+pi1)) EPS)
+              ]
+          (recur xs is-on-polygon?))))))
 
-;// returns true if point p is in either convex/concave polygon P
-;boolean inPolygon(point pt, List<point> P) {
-;                                            if ((int)P.size() == 0) return false;
-;                                            double sum = 0; // assume first vertex = last vertex
-;                                            for (int i = 0; i < (int)P.size()-1; i++) {
-;                                                     if (ccw(pt, P.get(i), P.get(i+1)))
-;                                                     sum += angle(P.get(i), pt, P.get(i+1));   // left turn/ccw
-;                                                     else sum -= angle(P.get(i), pt, P.get(i+1)); } // right turn/cw
-;                                                     return Math.abs(Math.abs(sum) - 2*Math.PI) < EPS; }
 (defn in-polygon?
   "docstring"
   [point points-of-polygon]
   (cond
-    (zero? (count points-of-polygon)) false
+    (<= (count points-of-polygon) 3) false
+    (true? (is-on-polygon-edge? point points-of-polygon)) true
     :else
-    (loop [[first & rest] points-of-polygon
-
+    (loop [[x & xs] points-of-polygon
+           sum 0.0
            ]
-      )
-    )
-  )
+      (cond
+        (empty? xs) (< (Math/abs (- (Math/abs sum) (* 2 Math/PI))) EPS)
+        (true? (is-ccw? point x (first xs))) (recur xs (+ sum (angle x point (first xs))))
+        :else (recur xs (- sum (angle x point (first xs))))
+        ))))
