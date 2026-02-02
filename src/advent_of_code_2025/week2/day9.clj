@@ -19,6 +19,7 @@
   [raw-lines]
   (vec (map #(parse-raw-line-to-point %) raw-lines)))
 
+
 (defn calc-area
   [[x1 y1] [x2 y2]]
   (let [abs-x (inc (abs (- x2 x1)))
@@ -27,11 +28,16 @@
     (* abs-x abs-y))
   )
 
+(defn calc-areas
+  [areas-xs]
+  (map #(calc-area (first %) (second %)) areas-xs)
+  )
+
 (defn make-combinations
   [points]
   (map-indexed (fn [idx item]
                  (let [rest (drop (inc idx) points)]
-                   (map #(calc-area item %) rest)))
+                   (map #(conj [] item %) rest)))
                points)
   )
 
@@ -39,12 +45,13 @@
   []
   (let [split-lines (clojure.string/split-lines input)
         points (parse-raw-lines-to-points split-lines)
-        ;_ (println points)
-        result (flatten (make-combinations points))
-        ;_ (println result)
+        result (->> (make-combinations points)
+                    (map #(calc-areas %))
+                    (flatten))
         ]
     (apply max result))
   )
+
 (solve-part-1)
 
 
@@ -121,8 +128,9 @@
   [input]
   (let [split-lines (clojure.string/split-lines input)
         points (parse-raw-lines-to-points split-lines)
+        looped-points (conj points (first points))
         connection-points (create-connection-points points)
-        ;_ (println points)
+        _ (println looped-points)
         ;   _ (clojure.pprint/pprint connection-points)
         ;board (create-matching-board points)
         ;new-board (connect-points-on-board connection-points board)
@@ -130,7 +138,7 @@
         ]
     0)
   )
-;(solve-part-2 input)
+(solve-part-2 example)
 
 (def simple-square [[1 1] [5 1] [5 5] [1 5] [1 1]])
 

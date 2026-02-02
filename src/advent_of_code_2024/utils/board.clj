@@ -61,9 +61,9 @@
 (defn parse-to-board
   [raw-lines]
   (let [flattened-data (->>
-                        (map #(vec (seq %1)) raw-lines)
-                        (flatten)
-                        (vec))
+                         (map #(vec (seq %1)) raw-lines)
+                         (flatten)
+                         (vec))
         width (count (first raw-lines))
         height (count raw-lines)
         empty-board (advent-of-code-2024.utils.board/new width height)]
@@ -73,8 +73,8 @@
   "Set the item at position X and position Y into the *new* board"
   [xPos yPos board item]
   (let [updated-board-value (assoc
-                             (:board board)
-                             (get-internal-position xPos yPos board) item)]
+                              (:board board)
+                              (get-internal-position xPos yPos board) item)]
     (update-board-data board updated-board-value)))
 
 (defn can-get-data-left?
@@ -210,30 +210,30 @@
 (defn is-same-symbol-left?
   [board curr-pos]
   (is-same-symbol?
-   board curr-pos
-   (can-get-data-left? (:x-pos curr-pos) board 2)
-   #(last (get-data-left (:x-pos %) (:y-pos %) board 2))))
+    board curr-pos
+    (can-get-data-left? (:x-pos curr-pos) board 2)
+    #(last (get-data-left (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-right?
   [board curr-pos]
   (is-same-symbol?
-   board curr-pos
-   (can-get-data-right? (:x-pos curr-pos) board 2)
-   #(last (get-data-right (:x-pos %) (:y-pos %) board 2))))
+    board curr-pos
+    (can-get-data-right? (:x-pos curr-pos) board 2)
+    #(last (get-data-right (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-top?
   [board curr-pos]
   (is-same-symbol?
-   board curr-pos
-   (can-get-data-top? (:y-pos curr-pos) board 2)
-   #(last (get-data-top (:x-pos %) (:y-pos %) board 2))))
+    board curr-pos
+    (can-get-data-top? (:y-pos curr-pos) board 2)
+    #(last (get-data-top (:x-pos %) (:y-pos %) board 2))))
 
 (defn is-same-symbol-bottom?
   [board curr-pos]
   (is-same-symbol?
-   board curr-pos
-   (can-get-data-bottom? (:y-pos curr-pos) board 2)
-   #(last (get-data-bottom (:x-pos %) (:y-pos %) board 2))))
+    board curr-pos
+    (can-get-data-bottom? (:y-pos curr-pos) board 2)
+    #(last (get-data-bottom (:x-pos %) (:y-pos %) board 2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Diagnostics
