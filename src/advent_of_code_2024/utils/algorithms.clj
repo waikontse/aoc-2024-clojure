@@ -196,8 +196,10 @@
 (defn cross
   "docstring"
   [vec-a vec-b]
-  (- (* (:x vec-a) (:y vec-b))
-     (* (:y vec-a) (:x vec-b)))
+  (->> (- (* (:x vec-a) (:y vec-b))
+          (* (:y vec-a) (:x vec-b)))
+       (double)
+       )
   )
 
 (defn is-ccw?
@@ -209,8 +211,10 @@
 
 (defn dot
   [vec-a vec-b]
-  (+ (* (:x vec-a) (:x vec-b))
-     (* (:y vec-a) (:y vec-b)))
+  (->> (+ (* (:x vec-a) (:x vec-b))
+          (* (:y vec-a) (:y vec-b)))
+       (double)
+       )
   )
 
 (defn dist
@@ -223,9 +227,12 @@
 (defn norm-sq
   "docstring"
   [vec-v]
-  (+ (* (:x vec-v) (:x vec-v))
-     (* (:y vec-v) (:y vec-v))
-     ))
+  (->> (+ (* (:x vec-v) (:x vec-v))
+          (* (:y vec-v) (:y vec-v))
+          )
+       (double)
+       )
+  )
 
 (defn angle
   "Returns angle aob in rad"

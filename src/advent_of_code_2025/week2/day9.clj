@@ -1,7 +1,8 @@
 (ns advent-of-code-2025.week2.day9
   (:require [advent-of-code-2024.utils.io :as io])
-  (:require [advent-of-code-2024.utils.board :as board])
-  (:require [advent-of-code-2024.utils.algorithms :as algo])
+  (:require [clojure.math.combinatorics :as combi])
+  (:require [advent-of-code-2024.utils.algorithms :as algo]
+            [clojure.math.combinatorics :as combo])
   )
 
 (def example (slurp "./resources/y2025/day9/example.txt"))
@@ -33,21 +34,13 @@
   (map #(calc-area (first %) (second %)) areas-xs)
   )
 
-(defn make-combinations
-  [points]
-  (map-indexed (fn [idx item]
-                 (let [rest (drop (inc idx) points)]
-                   (map #(conj [] item %) rest)))
-               points)
-  )
-
 (defn solve-part-1
   []
   (let [split-lines (clojure.string/split-lines input)
         points (parse-raw-lines-to-points split-lines)
-        result (->> (make-combinations points)
-                    (map #(calc-areas %))
-                    (flatten))
+        result (->> (combo/combinations points 2)
+                    (calc-areas)
+                    )
         ]
     (apply max result))
   )
@@ -57,95 +50,74 @@
 
 ;;; Code for part 2
 
-(def EMPTY \.)
-(def RED \#)
-(def GREEN \X)
-
-(defn create-matching-board
+(defn generate-vertical
   "docstring"
-  [points]
-  (let [max-x (apply max (map #(first %) points))
-        max-y (apply max (map #(second %) points))
-        _ (println max-x max-y)
-        row-data (repeat (inc max-x) EMPTY)
-        full-board-data (repeat (inc max-y) row-data)
-        ]
-    (board/parse-to-board full-board-data))
+  [arglist]
   )
 
-(defn create-connection-points
-  [points]
-  (->> (first points)
-       (conj points)
-       (partition 2 1)))
-
-(defn connect-horizontal-green-dots
-  [x y x-max board]
-  (if (< x-max x)
-    board
-    (connect-horizontal-green-dots (inc x) y x-max (board/set-pos x y board GREEN)))
+(defn generate-horizontal
+  "docstring"
+  [arglist]
   )
 
-(defn connect-vertical-green-dots
-  [x y y-max board]
-  (if (< y-max y)
-    board
-    (connect-vertical-green-dots x (inc y) y-max (board/set-pos x y board GREEN)))
-  )
+;(defn connect-green-dots
+;  [x1 y1 x2 y2]
+;  (let [x-min (min x1 x2)
+;        x-max (max x1 x2)
+;        y-min (min y1 y2)
+;        y-max (max y1 y2)]
+;    (cond
+;      (= x1 x2) (connect-vertical-green-dots x1 (inc y-min) (dec y-max) board)
+;      (= y1 y2) (connect-horizontal-green-dots (inc x-min) y1 (dec x-max) board)
+;      :else (throw (Exception. "Unexpected points direction"))
+;      )
+;    )
+;  )
 
-(defn connect-green-dots
-  [x1 y1 x2 y2 board]
-  (let [x-min (min x1 x2)
-        x-max (max x1 x2)
-        y-min (min y1 y2)
-        y-max (max y1 y2)]
-    (cond
-      (= x1 x2) (connect-vertical-green-dots x1 (inc y-min) (dec y-max) board)
-      (= y1 y2) (connect-horizontal-green-dots (inc x-min) y1 (dec x-max) board)
-      :else (throw (Exception. "Unexpected points direction"))
-      )
-    )
-  )
 
-(defn connect-points-on-board
-  [points board]
+(defn all-points-in-polygon?
+  [points points-of-polygon]
   (loop [remaining-points points
-         updated-board board]
+         is-in-polygon? true]
     (cond
-      (empty? remaining-points) updated-board
+      (false? is-in-polygon?) false
+      (empty? remaining-points) true
       :else
-      (let [[[x1 y1] [x2 y2]] (first remaining-points)
-            updated-board-with-reds-1 (board/set-pos x1 y1 updated-board RED)
-            updated-board-with-reds-2 (board/set-pos x2 y2 updated-board-with-reds-1 RED)
-            updated-board-with-greens (connect-green-dots x1 y1 x2 y2 updated-board-with-reds-2)
-            ]
-        (recur (rest remaining-points) updated-board-with-greens))
+      (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) points-of-polygon))
       )
     )
   )
 
 (defn solve-part-2
-  [input]
-  (let [split-lines (clojure.string/split-lines input)
+  [input-lines]
+  (let [split-lines (clojure.string/split-lines input-lines)
         points (parse-raw-lines-to-points split-lines)
         looped-points (conj points (first points))
-        connection-points (create-connection-points points)
-        _ (println looped-points)
-        ;   _ (clojure.pprint/pprint connection-points)
-        ;board (create-matching-board points)
-        ;new-board (connect-points-on-board connection-points board)
-        ;_ (board/print-board new-board)
+        all-combinations (combo/combinations points 2)
+        _ (println (count all-combinations) (first all-combinations))
         ]
     0)
   )
-(solve-part-2 example)
+(solve-part-2 input)
+
+
+(def input-points-looped
+  (->> (clojure.string/split-lines input)
+       (parse-raw-lines-to-points)
+       (#(conj % (first %)))
+       )
+  )
+
+(all-points-in-polygon? [[13150 80164]] input-points-looped)
+
 
 (def simple-square [[1 1] [5 1] [5 5] [1 5] [1 1]])
-
+;
 (algo/in-polygon? [5 6] simple-square)
-(algo/is-on-polygon-edge? [0 0] simple-square)
+;(algo/is-on-polygon-edge? [0 0] simple-square)
+;
+;;(algo/is-ccw? [2 4] [1 1] [3 3])
+;(algo/angle [2 4] [1 1] [3 3])
 
-;(algo/is-ccw? [2 4] [1 1] [3 3])
-(algo/angle [2 4] [1 1] [3 3])
 
-
+(combo/combinations [1 2 3] 2)
