@@ -60,20 +60,40 @@
   [arglist]
   )
 
-;(defn connect-green-dots
-;  [x1 y1 x2 y2]
-;  (let [x-min (min x1 x2)
-;        x-max (max x1 x2)
-;        y-min (min y1 y2)
-;        y-max (max y1 y2)]
-;    (cond
-;      (= x1 x2) (connect-vertical-green-dots x1 (inc y-min) (dec y-max) board)
-;      (= y1 y2) (connect-horizontal-green-dots (inc x-min) y1 (dec x-max) board)
-;      :else (throw (Exception. "Unexpected points direction"))
-;      )
-;    )
-;  )
+(defn generate-vertical-dots
+  [from to]
+  (let [[x1 y1] from
+        [_ y2] to
+        y-min (min y1 y2)
+        y-max (max y1 y2)]
+    (for [y (range y-min (inc y-max))]
+      [x1 y])
+    ))
 
+(defn generate-horizontal-dots
+  [from to]
+  (let [[x1 y1] from
+        [x2 _] to
+        x-min (min x1 x2)
+        x-max (max x1 x2)]
+    (for [x (range x-min (inc x-max))]
+      [x y1])
+    ))
+
+(defn generate-all-dots-for-points
+  [from to]
+  (let [[x1 y1] from
+        [x2 y2] to
+        ]
+    (cond
+      (= x1 x2) (generate-vertical-dots from to)
+      (= y1 y2) (generate-horizontal-dots from to)
+      :else '()
+      )
+    )
+  )
+
+(generate-all-dots-for-points [1 10] [11 11])
 
 (defn all-points-in-polygon?
   [points points-of-polygon]
@@ -88,6 +108,11 @@
     )
   )
 
+(defn area-if-all-points-in-polygon
+  [points points-of-polygon]
+  (if (true? (all-points-in-polygon? points points-of-polygon)))
+  )
+
 (defn solve-part-2
   [input-lines]
   (let [split-lines (clojure.string/split-lines input-lines)
@@ -98,7 +123,7 @@
         ]
     0)
   )
-(solve-part-2 input)
+(solve-part-2 example)
 
 
 (def input-points-looped
