@@ -1,11 +1,12 @@
 (ns advent-of-code-2025.week2.day9
-  (:require [advent-of-code-2024.utils.io :as io])
-  (:require [clojure.math.combinatorics :as combi])
   (:require [advent-of-code-2024.utils.algorithms :as algo]
+            [advent-of-code-2024.utils.io :as io]
+            [clojure.math.combinatorics]
             [clojure.math.combinatorics :as combo])
   )
 
 (def example (slurp "./resources/y2025/day9/example.txt"))
+(def example2 (slurp "./resources/y2025/day9/example2.txt"))
 (def input (slurp "./resources/y2025/day9/input.txt"))
 
 (defn parse-raw-line-to-point
@@ -80,38 +81,117 @@
       [x y1])
     ))
 
+(defn generate-square-dots
+  [from to]
+  (let [[x1 y1] from
+        [x2 y2] to
+        x-min (min x1 x2)
+        x-max (max x1 x2)
+        y-min (min y1 y2)
+        y-max (max y1 y2)
+        top-left [x-min y-min]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
+        top-right [x-max y-min] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
+        bottom-left [x-min y-max] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
+        bottom-right [x-max y-max] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
+        ]
+     [top-left top-right bottom-right bottom-left top-left]
+    )
+  )
+
+(generate-square-dots [1 1] [3 3])
+
 (defn generate-all-dots-for-points
   [from to]
   (let [[x1 y1] from
         [x2 y2] to
         ]
     (cond
-      (= x1 x2) (generate-vertical-dots from to)
-      (= y1 y2) (generate-horizontal-dots from to)
-      :else '()
+      (= x1 x2) [] ; (generate-vertical-dots from to)
+      (= y1 y2) [] ; (generate-horizontal-dots from to)
+      :else (generate-square-dots from to)
       )
     )
   )
 
 (generate-all-dots-for-points [1 10] [11 11])
 
+;; precheck-all 4 corners first, before checking the rest
+
+
+;; should make faster with pmap implementation
 (defn all-points-in-polygon?
-  [points points-of-polygon]
-  (loop [remaining-points points
-         is-in-polygon? true]
+  [points points-of-polygon with-edge]
+  (cond
+    (empty? points) false
+    :else
+    (loop [remaining-points points
+           is-in-polygon? true]
+      (cond
+        (false? is-in-polygon?) false
+        (empty? remaining-points) true
+        :else
+        (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) points-of-polygon with-edge))
+        )
+      ))
+  )
+
+
+;; 1. Check if all corners are inside
+;; 2. Check if there are points inside the square
+(defn all-corners-are-inside?
+  [corners points-of-polygon]
+  (all-points-in-polygon? corners points-of-polygon true)
+  )
+
+(defn all-points-are-outside?
+  "Check that all the points of the polygon are outside the corner. Edge detection should be turned off."
+  [points-of-polygon corners]
+  (cond
+    (empty? corners) true
+    :else
+    (loop [remaining-points points-of-polygon
+           is-in-polygon? false]
+      (cond
+        (true? is-in-polygon?) false
+        (empty? remaining-points) true
+        :else
+        (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) corners false))
+        )
+      ))
+  )
+
+(defn combination-area
+  "Check if the combination of from to is inside the polygon and calculate the area if inside."
+  [combination points-of-polygon]
+  (let [first-coor (first combination)
+        second-coor (second combination)
+        corners (generate-all-dots-for-points first-coor second-coor)
+        ;_ (println "middle point:" middle-point)
+        ;_ (println "new corners:" new-corners)
+        corners-inside? (all-corners-are-inside? corners points-of-polygon)
+        ]
     (cond
-      (false? is-in-polygon?) false
-      (empty? remaining-points) true
+      (false? corners-inside?) 0
       :else
-      (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) points-of-polygon))
+      (let [all-polygon-points-are-outside? (all-points-are-outside? points-of-polygon corners)
+            _ (println "is inside:" all-polygon-points-are-outside? first-coor second-coor)
+            ]
+        (if (true? all-polygon-points-are-outside?)
+          (calc-area first-coor second-coor)
+          0)
+        )
       )
     )
   )
 
-(defn area-if-all-points-in-polygon
-  [points points-of-polygon]
-  (if (true? (all-points-in-polygon? points points-of-polygon)))
+(defn max-area-if-all-points-in-polygon
+  [combinations points-of-polygon]
+  (->> (map #(combination-area % points-of-polygon) combinations)
+       (reduce max))
   )
+
+;; Answer part 1: 4715966250
+;; Failed: 4601733120 - Too high
 
 (defn solve-part-2
   [input-lines]
@@ -119,11 +199,13 @@
         points (parse-raw-lines-to-points split-lines)
         looped-points (conj points (first points))
         all-combinations (combo/combinations points 2)
-        _ (println (count all-combinations) (first all-combinations))
+        _ (println (count all-combinations)  all-combinations)
+        max-area (max-area-if-all-points-in-polygon all-combinations looped-points)
+        _ (println "max area: " max-area)
         ]
     0)
   )
-(solve-part-2 example)
+(time (solve-part-2 example2))
 
 
 (def input-points-looped
@@ -133,12 +215,31 @@
        )
   )
 
-(all-points-in-polygon? [[13150 80164]] input-points-looped)
+(def example-points-looped
+  (->> (clojure.string/split-lines example)
+       (parse-raw-lines-to-points)
+       (#(conj % (first %)))
+       )
+  )
 
+(def example2-points-looped
+  (->> (clojure.string/split-lines example2)
+       (parse-raw-lines-to-points)
+       (#(conj % (first %)))
+       )
+  )
+
+example2-points-looped
+
+
+;(all-points-in-polygon? [[13150 80164]] example-points-looped true)
+
+(combination-area [[1 1] [9 9]] example-points-looped)
+example-points-looped
 
 (def simple-square [[1 1] [5 1] [5 5] [1 5] [1 1]])
 ;
-(algo/in-polygon? [5 6] simple-square)
+(algo/in-polygon? [5 5] simple-square false)
 ;(algo/is-on-polygon-edge? [0 0] simple-square)
 ;
 ;;(algo/is-ccw? [2 4] [1 1] [3 3])

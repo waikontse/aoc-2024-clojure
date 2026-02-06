@@ -266,10 +266,10 @@
 
 (defn in-polygon?
   "docstring"
-  [point points-of-polygon]
+  [point points-of-polygon with-polygon-edge]
   (cond
     (<= (count points-of-polygon) 3) false
-    (true? (is-on-polygon-edge? point points-of-polygon)) true
+    (true? (is-on-polygon-edge? point points-of-polygon)) with-polygon-edge
     :else
     (loop [[x & xs] points-of-polygon
            sum 0.0
