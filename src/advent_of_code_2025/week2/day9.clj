@@ -1,12 +1,11 @@
 (ns advent-of-code-2025.week2.day9
   (:require [advent-of-code-2024.utils.algorithms :as algo]
             [advent-of-code-2024.utils.io :as io]
-            [clojure.math.combinatorics]
             [clojure.math.combinatorics :as combo])
   )
-
 (def example (slurp "./resources/y2025/day9/example.txt"))
 (def example2 (slurp "./resources/y2025/day9/example2.txt"))
+(def example3 (slurp "./resources/y2025/day9/example3.txt"))
 (def input (slurp "./resources/y2025/day9/input.txt"))
 
 (defn parse-raw-line-to-point
@@ -21,19 +20,16 @@
   [raw-lines]
   (vec (map #(parse-raw-line-to-point %) raw-lines)))
 
-
 (defn calc-area
   [[x1 y1] [x2 y2]]
   (let [abs-x (inc (abs (- x2 x1)))
         abs-y (inc (abs (- y2 y1)))
         ]
-    (* abs-x abs-y))
-  )
+    (* abs-x abs-y)))
 
 (defn calc-areas
   [areas-xs]
-  (map #(calc-area (first %) (second %)) areas-xs)
-  )
+  (map #(calc-area (first %) (second %)) areas-xs))
 
 (defn solve-part-1
   []
@@ -43,23 +39,11 @@
                     (calc-areas)
                     )
         ]
-    (apply max result))
-  )
+    (apply max result)))
 
 (solve-part-1)
 
-
 ;;; Code for part 2
-
-(defn generate-vertical
-  "docstring"
-  [arglist]
-  )
-
-(defn generate-horizontal
-  "docstring"
-  [arglist]
-  )
 
 (defn generate-vertical-dots
   [from to]
@@ -89,16 +73,16 @@
         x-max (max x1 x2)
         y-min (min y1 y2)
         y-max (max y1 y2)
-        top-left [x-min y-min]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
-        top-right [x-max y-min] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
-        bottom-left [x-min y-max] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
-        bottom-right [x-max y-max] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
+        top-left [(inc x-min) (inc y-min)]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
+        top-right [(dec x-max) (inc y-min)] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
+        bottom-left [(inc x-min) (dec y-max)] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
+        bottom-right [(dec x-max) (dec y-max)] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
         ]
      [top-left top-right bottom-right bottom-left top-left]
     )
   )
 
-(generate-square-dots [1 1] [3 3])
+(generate-square-dots [1 1] [4 4])
 
 (defn generate-all-dots-for-points
   [from to]
@@ -137,7 +121,9 @@
 
 
 ;; 1. Check if all corners are inside
-;; 2. Check if there are points inside the square
+;; 2. Check if the "smaller" points are inside
+;; 3. Check if there are points inside the square
+;; 4. Are there lines crossing the rectangle?
 (defn all-corners-are-inside?
   [corners points-of-polygon]
   (all-points-in-polygon? corners points-of-polygon true)
@@ -174,10 +160,11 @@
       (false? corners-inside?) 0
       :else
       (let [all-polygon-points-are-outside? (all-points-are-outside? points-of-polygon corners)
-            _ (println "is inside:" all-polygon-points-are-outside? first-coor second-coor)
+            area (calc-area first-coor second-coor)
+            _ (println "is inside:" all-polygon-points-are-outside? first-coor second-coor "area:" area)
             ]
         (if (true? all-polygon-points-are-outside?)
-          (calc-area first-coor second-coor)
+          area
           0)
         )
       )
@@ -191,22 +178,36 @@
   )
 
 ;; Answer part 1: 4715966250
+                  4601733120
 ;; Failed: 4601733120 - Too high
+           4601733120
 
 (defn solve-part-2
   [input-lines]
   (let [split-lines (clojure.string/split-lines input-lines)
         points (parse-raw-lines-to-points split-lines)
         looped-points (conj points (first points))
-        all-combinations (combo/combinations points 2)
-        _ (println (count all-combinations)  all-combinations)
-        max-area (max-area-if-all-points-in-polygon all-combinations looped-points)
-        _ (println "max area: " max-area)
+        partitioned-looped-points (partition 2 1 looped-points)
+
+        ;all-combinations (combo/combinations points 2)
+        _ (println "combinations counts:" (count partitioned-looped-points))
+        horizontal-scaling (->> (filter #(is-horizontal? (first %) (second %)) partitioned-looped-points)
+                                (map #(horizontal-dist (first %) (second %)))
+                                (filter #(not (is-prime? %)))
+                                (filter #(even? %))
+                                ;(reduce math/gcd)
+                                )
+        ;;_ (println "big numbers: " (reduce * (into #{} horizontal-scaling)))
+        _ (println "count:" (count horizontal-scaling) "horizontal scaling:" horizontal-scaling)
+        ;_ (println (count all-combinations)  all-combinations)
+        ;max-area (max-area-if-all-points-in-polygon all-combinations looped-points)
+        max-gcd (try-to-find-highest-gcd horizontal-scaling)
+        _ (println "max gcd:" max-gcd)
+        ;_ (println "max area: " max-area)
         ]
     0)
   )
-(time (solve-part-2 example2))
-
+(time (solve-part-2 input))
 
 (def input-points-looped
   (->> (clojure.string/split-lines input)
@@ -229,13 +230,16 @@
        )
   )
 
-example2-points-looped
+(def example3-points-looped
+  (->> (clojure.string/split-lines example3)
+       (parse-raw-lines-to-points)
+       (#(conj % (first %)))
+       )
+  )
 
+(solve-part-2 example3)
 
 ;(all-points-in-polygon? [[13150 80164]] example-points-looped true)
-
-(combination-area [[1 1] [9 9]] example-points-looped)
-example-points-looped
 
 (def simple-square [[1 1] [5 1] [5 5] [1 5] [1 1]])
 ;

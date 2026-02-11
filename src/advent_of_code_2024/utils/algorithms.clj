@@ -180,6 +180,12 @@
           right (filter #(> % pivot) rest)]
       (concat (quick-sort left) [pivot] (quick-sort right)))))
 
+(defn is-prime? [num]
+  "Check if num is a prime number."
+  (cond
+    (< num 2) false
+    (= num 2) true
+    :else (not-any? zero? (map #(mod num %) (range 2 (inc (int (Math/sqrt num))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; START of POLYGON
