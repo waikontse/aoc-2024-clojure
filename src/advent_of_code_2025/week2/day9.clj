@@ -73,16 +73,33 @@
         x-max (max x1 x2)
         y-min (min y1 y2)
         y-max (max y1 y2)
-        top-left [(inc x-min) (inc y-min)]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
-        top-right [(dec x-max) (inc y-min)] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
-        bottom-left [(inc x-min) (dec y-max)] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
-        bottom-right [(dec x-max) (dec y-max)] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
+        top-left [x-min y-min]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
+        top-right [x-max y-min] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
+        bottom-left [x-min y-max] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
+        bottom-right [x-max y-max] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
         ]
      [top-left top-right bottom-right bottom-left top-left]
     )
   )
 
-(generate-square-dots [1 1] [4 4])
+(defn generate-smaller-square-dots
+  [from to]
+  (let [[x1 y1] from
+        [x2 y2] to
+        x-min (min x1 x2)
+        x-max (max x1 x2)
+        y-min (min y1 y2)
+        y-max (max y1 y2)
+        top-left [(+ x-min 0.5) (+ y-min 0.5)]  ;(generate-vertical-dots [x-min y-min] [x-min y-max])
+        top-right [(- x-max 0.5) (+ y-min 0.5)] ;(generate-vertical-dots [x-max y-min] [x-max y-max])
+        bottom-left [(+ x-min 0.5) (- y-max 0.5)] ;(generate-horizontal-dots [(inc x-min) y-min] [(dec x-max) y-min])
+        bottom-right [(- x-max 0.5) (- y-max 0.5)] ;(generate-horizontal-dots [(inc x-min) y-max] [(dec x-max) y-max])
+        ]
+    [top-left top-right bottom-right bottom-left top-left]
+    )
+  )
+
+(generate-smaller-square-dots [1 1] [4 4])
 
 (defn generate-all-dots-for-points
   [from to]
@@ -129,19 +146,20 @@
   (all-points-in-polygon? corners points-of-polygon true)
   )
 
-(defn all-points-are-outside?
-  "Check that all the points of the polygon are outside the corner. Edge detection should be turned off."
-  [points-of-polygon corners]
+(defn all-polygon-points-are-outside-rectangle?
+  "Check that all the points of the polygon are outside the corner. Edge detection should be turned off.
+   Returns true "
+  [corners points-of-polygon]
   (cond
     (empty? corners) true
     :else
-    (loop [remaining-points points-of-polygon
+    (loop [remaining-polygon-points points-of-polygon
            is-in-polygon? false]
       (cond
         (true? is-in-polygon?) false
-        (empty? remaining-points) true
+        (empty? remaining-polygon-points) true
         :else
-        (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) corners false))
+        (recur (rest remaining-polygon-points) (algo/in-polygon? (first remaining-polygon-points) corners false))
         )
       ))
   )
@@ -155,11 +173,13 @@
         ;_ (println "middle point:" middle-point)
         ;_ (println "new corners:" new-corners)
         corners-inside? (all-corners-are-inside? corners points-of-polygon)
+        smaller-rectangle (generate-smaller-square-dots first-coor second-coor)
         ]
     (cond
       (false? corners-inside?) 0
+      (false? (all-polygon-points-are-outside-rectangle? smaller-rectangle points-of-polygon)) 0
       :else
-      (let [all-polygon-points-are-outside? (all-points-are-outside? points-of-polygon corners)
+      (let [all-polygon-points-are-outside? (all-polygon-points-are-outside-rectangle? points-of-polygon corners)
             area (calc-area first-coor second-coor)
             _ (println "is inside:" all-polygon-points-are-outside? first-coor second-coor "area:" area)
             ]
@@ -187,27 +207,17 @@
   (let [split-lines (clojure.string/split-lines input-lines)
         points (parse-raw-lines-to-points split-lines)
         looped-points (conj points (first points))
-        partitioned-looped-points (partition 2 1 looped-points)
+        ;partitioned-looped-points (partition 2 1 looped-points)
 
-        ;all-combinations (combo/combinations points 2)
-        _ (println "combinations counts:" (count partitioned-looped-points))
-        horizontal-scaling (->> (filter #(is-horizontal? (first %) (second %)) partitioned-looped-points)
-                                (map #(horizontal-dist (first %) (second %)))
-                                (filter #(not (is-prime? %)))
-                                (filter #(even? %))
-                                ;(reduce math/gcd)
-                                )
-        ;;_ (println "big numbers: " (reduce * (into #{} horizontal-scaling)))
-        _ (println "count:" (count horizontal-scaling) "horizontal scaling:" horizontal-scaling)
+        all-combinations (combo/combinations points 2)
+        ;_ (println "combinations counts:" (count partitioned-looped-points))
         ;_ (println (count all-combinations)  all-combinations)
-        ;max-area (max-area-if-all-points-in-polygon all-combinations looped-points)
-        max-gcd (try-to-find-highest-gcd horizontal-scaling)
-        _ (println "max gcd:" max-gcd)
-        ;_ (println "max area: " max-area)
+        max-area (max-area-if-all-points-in-polygon all-combinations looped-points)
+        _ (println "max area: " max-area)
         ]
     0)
   )
-(time (solve-part-2 input))
+;;(time (solve-part-2 input))
 
 (def input-points-looped
   (->> (clojure.string/split-lines input)
