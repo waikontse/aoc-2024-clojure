@@ -70,6 +70,8 @@
       :else (generate-square-dots from to)
       )))
 
+(def memo-in-polygon? (memoize algo/in-polygon?))
+
 ;; should make faster with pmap implementation
 (defn all-points-in-polygon?
   [points points-of-polygon with-edge]
@@ -82,7 +84,7 @@
         (false? is-in-polygon?) false
         (empty? remaining-points) true
         :else
-        (recur (rest remaining-points) (algo/in-polygon? (first remaining-points) points-of-polygon with-edge))
+        (recur (rest remaining-points) (memo-in-polygon? (first remaining-points) points-of-polygon with-edge))
         ))))
 
 
@@ -113,9 +115,15 @@
       (and (>= yline1 y-max) (>= yline2 y-max)) false
       :else true)))
 
+(defn polygon-pairs [points]
+  (vec (partition 2 1 points)))
+
+(def memo-polygon-pairs (memoize polygon-pairs))
+
+
 (defn crosses-rectangle-vertically?
   [from to points-of-polygon]
-  (loop [combinations (partition 2 1 points-of-polygon)
+  (loop [combinations (memo-polygon-pairs points-of-polygon)
          crosses-vertically? false
          ]
     (cond
@@ -146,7 +154,7 @@
 
 (defn crosses-rectangle-horizontally?
   [from to point-of-polygon]
-  (loop [combinations (partition 2 1 point-of-polygon)
+  (loop [combinations (memo-polygon-pairs point-of-polygon)
          crosses-horizontally? false
          ]
     (cond
@@ -170,7 +178,7 @@
         (true? is-in-rectangle?) false
         (empty? remaining-polygon-points) true
         :else
-        (recur (rest remaining-polygon-points) (algo/in-polygon? (first remaining-polygon-points) corners false))
+        (recur (rest remaining-polygon-points) (memo-in-polygon? (first remaining-polygon-points) corners false))
         )
       ))
   )
@@ -197,7 +205,9 @@
 
 (defn max-area-if-all-points-in-polygon
   [combinations points-of-polygon]
-  (->> (pmap #(combination-area % points-of-polygon) combinations)
+  (->> combinations
+       (pmap #(future (combination-area % points-of-polygon)))
+       (pmap deref)
        (reduce max)))
 
 ;; 1530527040
@@ -212,7 +222,7 @@
         ]
     max-area)
   )
-(time (solve-part-2 example3))
+(time (solve-part-2 input))
 
 
 
