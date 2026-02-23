@@ -6,5 +6,8 @@
   :dependencies [[org.clojure/clojure "1.12.3"]
                  [org.clojure/math.combinatorics "0.3.2"]
                  [org.clojure/math.numeric-tower "0.1.1"]
+                 [pez/prolin "0.1.5-SNAPSHOT"]
                  ]
-  :repl-options {:init-ns advent-of-code-2024.core})
+  :repl-options {:init-ns advent-of-code-2024.core}
+  :global-vars {*data-readers* {'queue clojure.lang.PersistentQueue/EMPTY}}
+  )
