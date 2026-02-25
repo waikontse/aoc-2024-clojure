@@ -78,9 +78,7 @@
         old-presses (:presses puzzle-state)
         new-presses (assoc old-presses button-idx (inc (nth old-presses button-idx)))
         ]
-    (assoc puzzle-state :presses new-presses :current new-state))
-  )
-
+    (assoc puzzle-state :presses new-presses :current new-state)))
 
 (defn solve-puzzle
   [puzzle]
@@ -111,12 +109,28 @@
         ]
     (reduce + puzzle-answers))
   )
-(time (solve-part-one input))
+;(time (solve-part-one input))
 ;; 466 - part1
 
+;######################################################
+; PART 2
+;######################################################
+(defn int-to-char
+  "0 -> a, 1 -> b, etc."
+  [num]
+  (char (+ num (int \a))))
 
+; 1. Generate standard constraints for all variables
+; 2. Generate constraints for each position
 
+(defn generate-basic-constraints
+  "docstring"
+  [puzzle-input]
+  )
 
+(defn generate-position-constraints
+  [puzzle-input]
+  )
 
 
 ;(def demo-puzzel {:target ".##.",
