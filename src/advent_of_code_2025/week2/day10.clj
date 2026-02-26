@@ -123,20 +123,45 @@
 ; 1. Generate standard constraints for all variables
 ; 2. Generate constraints for each position
 
-(defn generate-basic-constraints
-  "docstring"
+(defn generate-min-constraint
   [puzzle-input]
-  )
+  (->> (count (:buttons puzzle-input))
+       (range 0)
+       (map #(int-to-char %))
+       (clojure.string/join "+")))
+
+(defn generate-basic-constraints
+  [puzzle-input]
+  (->> (count (:buttons puzzle-input))
+       (range 0)
+       (map #(format "%s >= 0" (int-to-char %)))
+       ))
+
+(defn generate-constraint-for-index
+  [puzzle-input index target]
+  (let [partial-constraint (->> (map-indexed (fn [idx item]
+                                               (if (contains? item index)
+                                                 (int-to-char idx)
+                                                 nil)
+                                               )
+                                             (:buttons puzzle-input))
+                                (filter #((not (nil? %))))
+                                (clojure.string/join "+"))
+        constraint (format "%s = %d" partial-constraint target)]
+    constraint))
 
 (defn generate-position-constraints
   [puzzle-input]
-  )
+  (map-indexed (fn [idx item]
+               (generate-constraint-for-index puzzle-input idx item))
+             (:config puzzle-input)))
 
-
-;(def demo-puzzel {:target ".##.",
-;                  :current "....",
-;                  :buttons '((3) (1 3) (2) (2 3) (0 2) (0 1)),
-;                  :presses [0 0 0 0 0 0],
-;                  :config "{3,5,4,7}"})
-;
+(def demo-puzzel {:target ".##.",
+                  :current "....",
+                  :buttons '((3) (1 3) (2) (2 3) (0 2) (0 1)),
+                  :presses [0 0 0 0 0 0],
+                  :config "{3,5,4,7}"})
+(generate-min-constraint demo-puzzel)
+(set (generate-basic-constraints demo-puzzel))
+(generate-constraint-for-index demo-puzzel 0 3)
 ;(solve-puzzle demo-puzzel)

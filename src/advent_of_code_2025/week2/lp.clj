@@ -22,7 +22,7 @@
               "x = 3"}
             )
 
-(p/minimize (cm/solver) "a"
+(p/minimize (cm/solver) "a+b+c+d+e+f"
             #{
               "a >= 0",
               "b >= 0",
@@ -38,7 +38,7 @@
               }
             )
 
-(def ans-b (p/minimize (cm/solver) "e"
+(def ans-b (p/minimize (cm/solver) "a+b+c+d+e"
                        #{
                          "a >= 0",
                          "b >= 0",
@@ -52,7 +52,8 @@
                          "a + b + e = 7",
                          "a + c + e = 2",
                          }
-                       ))
+                       )
+  )
 
 (int (reduce +(vals ans-b)))
 
