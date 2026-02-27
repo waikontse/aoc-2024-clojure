@@ -4,6 +4,10 @@
             )
   )
 
+(require '[prolin :as p])
+(require '[prolin.commons-math :as cm])
+
+
 (def example (slurp "./resources/y2025/day10/example.txt"))
 (def input (slurp "./resources/y2025/day10/input.txt"))
 
@@ -12,15 +16,16 @@
   (-> (clojure.string/replace-first target left "")
        (clojure.string/replace-first right "")))
 
-(defn get-button
-  [raw-button]
-  (-> (stringize-target raw-button "(" ")")
+(defn parse-ints
+  [raw-button left right]
+  (-> (stringize-target raw-button left right)
       (clojure.string/split #",")
       (io/strs->ints)))
 
+
 (defn get-buttons
   [raw-buttons]
-  (map #(get-button %) raw-buttons))
+  (map #(parse-ints % "(" ")") raw-buttons))
 
 (defn parse-raw-line-to-puzzle
   "Parses a string to the puzzle input
@@ -35,7 +40,7 @@
   [raw-line]
   (let [raw-parts (clojure.string/split raw-line #" ")
         target (stringize-target (first raw-parts) "[" "]" )
-        config (last raw-parts)
+        config (parse-ints (last raw-parts) "{" "}")
         buttons (->> (rest raw-parts)
                      drop-last
                      (get-buttons))
@@ -109,7 +114,7 @@
         ]
     (reduce + puzzle-answers))
   )
-;(time (solve-part-one input))
+;(time (solve-part-one example))
 ;; 466 - part1
 
 ;######################################################
@@ -140,12 +145,12 @@
 (defn generate-constraint-for-index
   [puzzle-input index target]
   (let [partial-constraint (->> (map-indexed (fn [idx item]
-                                               (if (contains? item index)
+                                               (if (io/in? index item)
                                                  (int-to-char idx)
                                                  nil)
                                                )
                                              (:buttons puzzle-input))
-                                (filter #((not (nil? %))))
+                                (filter #(not (nil? %)))
                                 (clojure.string/join "+"))
         constraint (format "%s = %d" partial-constraint target)]
     constraint))
@@ -153,15 +158,44 @@
 (defn generate-position-constraints
   [puzzle-input]
   (map-indexed (fn [idx item]
-               (generate-constraint-for-index puzzle-input idx item))
+                 ;(println "idx" idx "item" item)
+                 (generate-constraint-for-index puzzle-input idx item))
              (:config puzzle-input)))
 
 (def demo-puzzel {:target ".##.",
                   :current "....",
                   :buttons '((3) (1 3) (2) (2 3) (0 2) (0 1)),
                   :presses [0 0 0 0 0 0],
-                  :config "{3,5,4,7}"})
-(generate-min-constraint demo-puzzel)
-(set (generate-basic-constraints demo-puzzel))
-(generate-constraint-for-index demo-puzzel 0 3)
-;(solve-puzzle demo-puzzel)
+                  :config '(3 5 4 7)})
+
+(defn confirm-answer
+  [puzzle-input solution]
+  )
+
+; (p/maximize (cm/solver) "x" #{"x <= 5", "x >= -2"})
+(defn solve-puzzle-part-2
+  [puzzle-input]
+  (let [min-constraint (generate-min-constraint puzzle-input)
+        basic-constraint (generate-basic-constraints puzzle-input)
+        position-constraint (generate-position-constraints puzzle-input)
+        comb-constraint (into (set basic-constraint) position-constraint)
+        answer (p/minimize (cm/solver) min-constraint comb-constraint)
+        ;_ (println answer)
+        ]
+    (int (reduce + (vals answer))))
+  )
+
+(solve-puzzle-part-2 demo-puzzel)
+
+(defn solve-part-two
+  [input]
+  (let [raw-lines (clojure.string/split-lines input)
+        puzzle-inputs (parse-raw-lines-to-puzzle raw-lines)
+        answers (map #(solve-puzzle-part-2 %) puzzle-inputs)
+        _ (println (count answers) answers )
+        ]
+    (reduce + answers))
+  )
+
+;; 17179 -- too low
+(solve-part-two input)
