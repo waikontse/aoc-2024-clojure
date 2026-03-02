@@ -9,6 +9,7 @@
 
 
 (def example (slurp "./resources/y2025/day10/example.txt"))
+(def example2 (slurp "./resources/y2025/day10/example2.txt"))
 (def input (slurp "./resources/y2025/day10/input.txt"))
 
 (defn stringize-target
@@ -179,11 +180,14 @@
         basic-constraint (generate-basic-constraints puzzle-input)
         position-constraint (generate-position-constraints puzzle-input)
         comb-constraint (into (set basic-constraint) position-constraint)
+        comb-constraint (conj comb-constraint "a = 1")
+        _ (pp/pprint comb-constraint)
         answer (p/minimize (cm/solver) min-constraint comb-constraint)
-        ;_ (println answer)
+        _ (pp/pprint answer)
         ]
     (int (reduce + (vals answer))))
   )
+
 
 (solve-puzzle-part-2 demo-puzzel)
 
@@ -198,4 +202,4 @@
   )
 
 ;; 17179 -- too low
-(solve-part-two input)
+(solve-part-two example2)
