@@ -7,6 +7,7 @@
                  [org.clojure/math.combinatorics "0.3.2"]
                  [org.clojure/math.numeric-tower "0.1.1"]
                  [pez/prolin "0.1.5-SNAPSHOT"]
+                 [org.ojalgo/ojalgo "56.2.1"]
                  ]
   :repl-options {:init-ns advent-of-code-2024.core}
   :global-vars {*data-readers* {'queue clojure.lang.PersistentQueue/EMPTY}}
