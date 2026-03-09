@@ -55,7 +55,7 @@
         ]
     (count-exits connected-graph START)))
 
-;(time (solve-part-1 example))
+;(time (solve-part-1 input))
 
 
 ;;;;;;;;; Solve part 2
@@ -66,7 +66,7 @@
 
 (defn find-all-parents
   [graph childs]
-  (let [_ (println "childs:" childs)
+  (let [                                                    ;_ (println "childs:" childs)
         parents (flatten (map #(find-all-nodes-containing-target graph %) childs))
         ;_ (println "parents" parents)
         ]
@@ -78,7 +78,7 @@
   [graph target]
   (let [current-nodes (find-all-nodes-containing-target graph target)
         out-nodes-of-target (:out (get graph target))
-        _ (println "current nodes:" current-nodes)
+        ;_ (println "current nodes:" current-nodes)
         ]
     (loop [current-targets (map #(:name %) current-nodes)
            collected (-> (map #(:name %) current-nodes)
@@ -90,8 +90,8 @@
         :else
         ;; filter out loops
         (let [all-parents (find-all-parents graph current-targets)
-              _ (println "found parents:" all-parents)
-              non-seen-ancestors (filter #(not (contains? collected %)) all-parents)
+              ;_ (println "found parents:" all-parents)
+              non-seen-ancestors (set (filter #(not (contains? collected %)) all-parents))
               updated-seen (into collected non-seen-ancestors)]
           (recur non-seen-ancestors updated-seen)))
       )
@@ -107,7 +107,7 @@
                         (to-map)))
 
 (find-all-nodes-containing-target example-graph OUT)
-(perculate-up-to-find-all-ancestors input-graph "dac")
+(perculate-up-to-find-all-ancestors input-graph "fft")      ;; 412 items for DAC, 101 items for fft
 
 (find-all-nodes-containing-target example-graph "aaa")
 (find-all-parents example-graph ["aaa" "dac"])
@@ -117,6 +117,9 @@
 ; 2. Find all nodes that can lead to dac, including outs of dac
 ; 3. Find all the out nodes
 ; 4. Combines all the nodes and use that as the "allow" list
+
+;; 1. First follow fft nodes, afterwards dac nodes
+;; 2. First follow dac nodes, afterwards fft nodes
 
 
 (defn solve-part-2
