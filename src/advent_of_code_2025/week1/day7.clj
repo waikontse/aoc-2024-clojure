@@ -52,7 +52,7 @@
   )
 
 (defn shoot-laser
-  [board [x y]]
+  [board [x y] atom-for-tachyons atom-for-finishes]
   (loop [updated-board board
          positions [[x y]]
         ]
@@ -60,20 +60,32 @@
           [x y] curr-pos]
       (cond
         (empty? positions) updated-board
-        (board/is-off-board? x y updated-board) (recur updated-board (rest positions))
-        (is-already-marked? updated-board curr-pos) (recur updated-board (rest positions))
+        (board/is-off-board? x y updated-board) (do
+                                                  (swap! atom-for-finishes inc)
+                                                  (recur updated-board (rest positions)))
+        (is-already-marked? updated-board curr-pos) (recur
+                                                      updated-board
+                                                      (-> (rest positions)
+                                                          (vec)
+                                                          (conj (move-down curr-pos))))
+                                                   ;; (recur updated-board (rest positions))
         (can-mark? updated-board curr-pos) (recur
                                              (mark updated-board curr-pos)
                                              (-> (rest positions)
                                                  (vec)
                                                  (conj (move-down curr-pos))))
-        (is-splitter? updated-board curr-pos) (recur
-                                                updated-board
-                                                (-> (rest positions)
-                                                    (vec)
-                                                    (conj (move-left curr-pos))
-                                                    (conj (move-right curr-pos))))
-        :else (throw (Exception. "unsupported branch"))
+        (is-splitter? updated-board curr-pos) (do
+                                                (swap! atom-for-tachyons inc)
+                                                (recur
+                                                  updated-board
+                                                  (-> (rest positions)
+                                                      (vec)
+                                                      (conj (move-left curr-pos))
+                                                      (conj (move-right curr-pos)))))
+        :else (do
+                (println "curr pos:" x y)
+                (println (board/get-pos x y updated-board))
+                (throw (Exception. "unsupported branch")))
         )
       )
     )
@@ -86,14 +98,24 @@
         starting-pos (first (board/find-all-chars-in-board parsed-board start))
         tachyons (board/find-all-chars-in-board parsed-board splitter)
         ;updated-board (shoot-laser parsed-board [(first starting-pos) (inc (second starting-pos))])
-        updated-board (shoot-laser parsed-board (move-down starting-pos))
-        activated-tachyons (find-all-marked-tachyons updated-board tachyons)
+        atom-for-tachyons (atom 0)
+        atom-for-finishes (atom 0)
+        updated-board (shoot-laser parsed-board (move-down starting-pos) atom-for-tachyons atom-for-finishes)
+        ;activated-tachyons (find-all-marked-tachyons updated-board tachyons)
         _ (println "starting pos:" starting-pos)
         _ (println "tachyons:" tachyons)
-        ;;_ (board/print-board updated-board)
-        _ (print "filter unactivated tachyons:" activated-tachyons)
+        _ (println "atom for tachyons" atom-for-tachyons)
+        _ (println "atom for finished" atom-for-finishes)
+        _ (print "filter activated tachyons:" (:val atom-for-tachyons))
         ]
-    activated-tachyons)
+    (:val atom-for-tachyons))
   )
 
+;; 1658
 (solve-part-1 input)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Part 2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(def count-atom (atom 0))
+;(swap! count-atom inc)
