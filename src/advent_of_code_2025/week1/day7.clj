@@ -112,10 +112,43 @@
   )
 
 ;; 1658
-(solve-part-1 input)
+(solve-part-1 example)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Part 2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;(def count-atom (atom 0))
 ;(swap! count-atom inc)
+(defn shoot-laser-recur
+  [board [x y] atom-for-tachyons]
+  (cond
+    (board/is-off-board? x y board) 1
+    (can-mark? board [x y]) (shoot-laser-recur board (move-down [x y]) atom-for-tachyons)
+    (is-splitter? board [x y]) (do
+                                 (swap! atom-for-tachyons inc)
+                                 (+ (shoot-laser-recur board (move-left [x y]) atom-for-tachyons)
+                                    (shoot-laser-recur board (move-right [x y]) atom-for-tachyons)))
+    :else (do
+            (println "curr pos:" x y)
+            (println (board/get-pos x y board))
+            (throw (Exception. "unsupported branch")))
+    )
+  )
+
+
+
+(defn solve-part-2
+  [input]
+  (let [raw-lines (clojure.string/split-lines input)
+        parsed-board (board/parse-to-board raw-lines)
+        starting-pos (first (board/find-all-chars-in-board parsed-board start))
+        atom-for-tachyons (atom 0)
+        parallel-universes (shoot-laser-recur parsed-board (move-down starting-pos) atom-for-tachyons)
+        _ (println "starting pos:" starting-pos)
+        _ (println "atom for tachyons" atom-for-tachyons)
+        _ (println "parallel universes:" parallel-universes)
+        ]
+    (:val atom-for-tachyons))
+  )
+
+(solve-part-2 input)
