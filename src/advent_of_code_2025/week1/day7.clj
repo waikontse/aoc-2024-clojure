@@ -42,17 +42,9 @@
   [[x y]]
   [(inc x) y])
 
-(defn find-all-marked-tachyons
-  [board tachyons-pos]
-  (let [updated-tachyons-pos (map (fn [[x y]] [x (dec y)]) tachyons-pos)
-        positions (map (fn [[x y]] (board/get-pos x y board)) updated-tachyons-pos)
-        filtered (filter #(= laser %) positions)
-        ]
-    (count filtered))
-  )
 
 (defn shoot-laser
-  [board [x y] atom-for-tachyons atom-for-finishes]
+  [board [x y] atom-for-tachyons]
   (loop [updated-board board
          positions [[x y]]
         ]
@@ -60,15 +52,8 @@
           [x y] curr-pos]
       (cond
         (empty? positions) updated-board
-        (board/is-off-board? x y updated-board) (do
-                                                  (swap! atom-for-finishes inc)
-                                                  (recur updated-board (rest positions)))
-        (is-already-marked? updated-board curr-pos) (recur
-                                                      updated-board
-                                                      (-> (rest positions)
-                                                          (vec)
-                                                          (conj (move-down curr-pos))))
-                                                   ;; (recur updated-board (rest positions))
+        (board/is-off-board? x y updated-board) (recur updated-board (rest positions))
+        (is-already-marked? updated-board curr-pos) (recur updated-board (rest positions))
         (can-mark? updated-board curr-pos) (recur
                                              (mark updated-board curr-pos)
                                              (-> (rest positions)
@@ -82,73 +67,44 @@
                                                       (vec)
                                                       (conj (move-left curr-pos))
                                                       (conj (move-right curr-pos)))))
-        :else (do
-                (println "curr pos:" x y)
-                (println (board/get-pos x y updated-board))
-                (throw (Exception. "unsupported branch")))
-        )
-      )
-    )
-  )
+        :else (throw (Exception. "unsupported branch"))))))
+
 
 (defn solve-part-1
   [input]
   (let [raw-lines (clojure.string/split-lines input)
         parsed-board (board/parse-to-board raw-lines)
         starting-pos (first (board/find-all-chars-in-board parsed-board start))
-        tachyons (board/find-all-chars-in-board parsed-board splitter)
-        ;updated-board (shoot-laser parsed-board [(first starting-pos) (inc (second starting-pos))])
         atom-for-tachyons (atom 0)
-        atom-for-finishes (atom 0)
-        updated-board (shoot-laser parsed-board (move-down starting-pos) atom-for-tachyons atom-for-finishes)
-        ;activated-tachyons (find-all-marked-tachyons updated-board tachyons)
-        _ (println "starting pos:" starting-pos)
-        _ (println "tachyons:" tachyons)
-        _ (println "atom for tachyons" atom-for-tachyons)
-        _ (println "atom for finished" atom-for-finishes)
-        _ (print "filter activated tachyons:" (:val atom-for-tachyons))
+        _ (shoot-laser parsed-board (move-down starting-pos) atom-for-tachyons)
         ]
-    (:val atom-for-tachyons))
-  )
+    (deref atom-for-tachyons)))
 
 ;; 1658
-(solve-part-1 example)
+(solve-part-1 input)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Part 2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;(def count-atom (atom 0))
-;(swap! count-atom inc)
-(defn shoot-laser-recur
-  [board [x y] atom-for-tachyons]
-  (cond
-    (board/is-off-board? x y board) 1
-    (can-mark? board [x y]) (shoot-laser-recur board (move-down [x y]) atom-for-tachyons)
-    (is-splitter? board [x y]) (do
-                                 (swap! atom-for-tachyons inc)
-                                 (+ (shoot-laser-recur board (move-left [x y]) atom-for-tachyons)
-                                    (shoot-laser-recur board (move-right [x y]) atom-for-tachyons)))
-    :else (do
-            (println "curr pos:" x y)
-            (println (board/get-pos x y board))
-            (throw (Exception. "unsupported branch")))
-    )
-  )
-
-
+(def mem-shoot-laser-recur
+  (memoize (fn [board [x y]]
+             (cond
+               (board/is-off-board? x y board) 1
+               (can-mark? board [x y]) (mem-shoot-laser-recur board (move-down [x y]))
+               (is-splitter? board [x y]) (+ (mem-shoot-laser-recur board (move-left [x y]))
+                                             (mem-shoot-laser-recur board (move-right [x y])))
+               :else (throw (Exception. "unsupported branch"))
+             ))))
 
 (defn solve-part-2
   [input]
   (let [raw-lines (clojure.string/split-lines input)
         parsed-board (board/parse-to-board raw-lines)
         starting-pos (first (board/find-all-chars-in-board parsed-board start))
-        atom-for-tachyons (atom 0)
-        parallel-universes (shoot-laser-recur parsed-board (move-down starting-pos) atom-for-tachyons)
-        _ (println "starting pos:" starting-pos)
-        _ (println "atom for tachyons" atom-for-tachyons)
+        parallel-universes (mem-shoot-laser-recur parsed-board (move-down starting-pos))
         _ (println "parallel universes:" parallel-universes)
         ]
-    (:val atom-for-tachyons))
-  )
+    parallel-universes))
 
 (solve-part-2 input)
