@@ -196,6 +196,60 @@
           :when (= target currPos)]
       [x y])))
 
+(defn convert-to-xy-positions
+  "Converts a given board with the target symbol into set of [x y] positions."
+  [board target-symbol]
+  (let [all-target-symbol-positions (for [x (range 0 (:width board))
+                                          y (range 0 (:height board))
+                                          :let [currPos (get-pos x y board)]
+                                          :when (= currPos target-symbol)
+                                          ]
+                                      [x y])]
+    (into #{} all-target-symbol-positions)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Rotating the board
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn rotate-clockwise
+  "Rotates a square board 90 degrees clockwise."
+  [board]
+  (let [w (:width board)
+        h (:height board)]
+    (when (not= w h)
+      (throw (ex-info "rotate-clockwise expects a square board" {:width w :height h})))
+    (let [n w
+          ;; build new board row-major: for each y then x produce new(x,y)
+          new-board-data (vec
+                           (for [y (range 0 n)
+                                 x (range 0 n)]
+                             ;; new(x,y) = old(y, N-1-x)
+                             (get-pos y (- (dec n) x) board)))]
+      (update-board-data board new-board-data))))
+
+(defn flip-horizontal
+  "Return a new board which is the horizontal mirror of the given board (left/right).
+   new(x,y) = old(width-1 - x, y)"
+  [board]
+  (let [w (:width board)
+        h (:height board)
+        new-board-data (vec
+                         (for [y (range 0 h)
+                               x (range 0 w)]
+                           (get-pos (- (dec w) x) y board)))]
+    (update-board-data board new-board-data)))
+
+(defn flip-vertical
+  "Return a new board which is the vertical mirror of the given board (top/bottom).
+   new(x,y) = old(x, height-1 - y)"
+  [board]
+  (let [w (:width board)
+        h (:height board)
+        new-board-data (vec
+                         (for [y (range 0 h)
+                               x (range 0 w)]
+                           (get-pos x (- (dec h) y) board)))]
+    (update-board-data board new-board-data)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; testing board properties
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -243,3 +297,4 @@
   (let [rows (partition (:width board) (:board board))]
     (printf "Board width: %d height: %d%n" (:width board) (:height board))
     (dorun (map #(println (apply str %)) rows))))
+

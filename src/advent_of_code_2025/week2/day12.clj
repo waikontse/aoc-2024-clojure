@@ -74,6 +74,20 @@
     (<= requested-puzzle-area puzzle-area))
   )
 
+(defn rotate-3-times
+  [board]
+  (let [r1 (board/rotate-clockwise board)
+        r2 (board/rotate-clockwise r1)
+        r3 (board/rotate-clockwise r2)
+        ]
+    )
+  )
+
+(defn get-all-unique-combinations
+  [board]
+  (let [binding value]
+    ))
+
 (defn solve-part-1
   [raw-input]
   (let [split-lines (clojure.string/split-lines raw-input)
@@ -91,4 +105,23 @@
     0))
 
 (solve-part-1 example)
+
+(let [b (board/parse-to-board ["###" "#.." "###"])
+      r (board/rotate-clockwise b)
+      f-vert (board/flip-vertical b)
+      f-hor (board/flip-horizontal b)
+      sel-posx (board/convert-to-xy-positions b \#)]
+  (board/print-board b)
+  (println "---- rotated ----")
+  (board/print-board r)
+  (println "---- flipped vertical ----")
+  (board/print-board f-vert)
+  (println "---- flipped horizontal ----")
+  (board/print-board f-hor)
+  (println "---- selected positions ----")
+  (println sel-posx)
+  )
+
+
+
 ;; when loaded in REPL, evaluating `example` will show the raw text; exporting parse helpers above
