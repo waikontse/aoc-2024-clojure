@@ -198,7 +198,7 @@
 
 (defn convert-to-xy-positions
   "Converts a given board with the target symbol into set of [x y] positions."
-  [board target-symbol]
+  [target-symbol board]
   (let [all-target-symbol-positions (for [x (range 0 (:width board))
                                           y (range 0 (:height board))
                                           :let [currPos (get-pos x y board)]
@@ -297,4 +297,3 @@
   (let [rows (partition (:width board) (:board board))]
     (printf "Board width: %d height: %d%n" (:width board) (:height board))
     (dorun (map #(println (apply str %)) rows))))
-

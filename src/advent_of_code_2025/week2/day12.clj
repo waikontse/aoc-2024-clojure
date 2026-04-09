@@ -4,6 +4,7 @@
 
 (def example (slurp "./resources/y2025/day12/example.txt"))
 (def input (slurp "./resources/y2025/day12/input.txt"))
+(def MARKED \#)
 
 (defn find-splits
   [raw-lines]
@@ -74,18 +75,31 @@
     (<= requested-puzzle-area puzzle-area))
   )
 
-(defn rotate-3-times
+(defn get-all-normal-rotations
   [board]
   (let [r1 (board/rotate-clockwise board)
         r2 (board/rotate-clockwise r1)
         r3 (board/rotate-clockwise r2)
+        all [board r1 r2 r3]
+        _ (doseq [i all]
+            (board/print-board i))
         ]
-    )
-  )
+    (->> all
+         (map #(:board %))
+         (map #(board/convert-to-xy-positions \#))
+         )))
 
 (defn get-all-unique-combinations
   [board]
-  (let [binding value]
+  (let [flipped-vertical (board/flip-vertical board)
+        flipped-vertical-positions (board/convert-to-xy-positions MARKED flipped-vertical)
+        all-normal-rotations (get-all-normal-rotations board)
+        should-generate-for-vertical? (contains? all-normal-rotations flipped-vertical-positions)
+        ]
+    (cond
+      (true? should-generate-for-vertical?) (->> (get-all-normal-rotations flipped-vertical)
+                                                 (into all-normal-rotations))
+      :else all-normal-rotations)
     ))
 
 (defn solve-part-1
@@ -110,7 +124,8 @@
       r (board/rotate-clockwise b)
       f-vert (board/flip-vertical b)
       f-hor (board/flip-horizontal b)
-      sel-posx (board/convert-to-xy-positions b \#)]
+      sel-posx (board/convert-to-xy-positions MARKED b)
+      all-rotations (get-all-unique-combinations b)]
   (board/print-board b)
   (println "---- rotated ----")
   (board/print-board r)
@@ -122,6 +137,10 @@
   (println sel-posx)
   )
 
+(def a-set #{[1 3] [3 1]})
+(def b-set #{[3 1] [1 3]})
+
+(= a-set b-set)
 
 
 ;; when loaded in REPL, evaluating `example` will show the raw text; exporting parse helpers above
