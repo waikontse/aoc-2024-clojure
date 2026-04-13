@@ -22,7 +22,7 @@ Purpose: quick, actionable guidance so an automated coding agent can be immediat
     - Positions are maps with `:x-pos` and `:y-pos`.
     - Example API (in `src/advent_of_code_2024/utils/board.clj`): `get-pos`, `set-pos`, `parse-to-board`, `get-data-*` helpers.
   - Input handling differs by year:
-    - 2024-style: use `advent-of-code-2024.utils.io/read-input` with a resource-relative filename string (e.g. `"day1/example.txt"`). Example usage in `src/advent_of_code_2024/week1/day1.clj`.
+    - 2024-style: use `utils.io/read-input` with a resource-relative filename string (e.g. `"day1/example.txt"`). Example usage in `src/advent_of_code_2024/week1/day1.clj`.
     - 2025-style: many namespaces `slurp` example/input into top-level vars and pass raw strings into solver functions. Preserve the existing style of the namespace you edit.
   - Tests mirror solver namespaces and commonly `:refer :all` to import functions.
 

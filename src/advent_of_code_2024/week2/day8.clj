@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week2.day8
-  (:require [advent-of-code-2024.utils.board :as board]
-            [advent-of-code-2024.utils.io :as io]))
+  (:require [utils.board :as board]
+            [utils.io :as io]))
 
 (defn find-all-distinct-symbols
   "docstring"

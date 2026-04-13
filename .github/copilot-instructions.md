@@ -29,7 +29,7 @@
 
 - Namespace naming follows normal Clojure path mapping: hyphenated namespaces such as `advent-of-code-2024.week1.day1` live in underscored paths like `src/advent_of_code_2024/week1/day1.clj`.
 - Input handling is year-specific and not fully uniform:
-  - 2024 solution files usually call `advent-of-code-2024.utils.io/read-input` and often accept a resource-relative filename like `"day1/example.txt"`.
+  - 2024 solution files usually call `utils.io/read-input` and often accept a resource-relative filename like `"day1/example.txt"`.
   - 2025 solution files often `slurp` `example` and `input` into top-level vars and pass raw string contents into `solve-part-1` / `solve-part-2`.
   - Preserve the existing style of the namespace you are editing instead of mixing both approaches in one file.
 - The shared board representation is a map with `:width`, `:height`, and a flat `:board` vector. Position maps consistently use `{:x-pos ... :y-pos ...}` across `utils.board`, `utils.algorithms`, and board-based puzzle solvers.

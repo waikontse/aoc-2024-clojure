@@ -1,5 +1,5 @@
 (ns advent-of-code-2025.week2.day10
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [utils.io :as io]
             )
   (:import (org.ojalgo.optimisation Expression ExpressionsBasedModel Variable)))
 

@@ -1,10 +1,10 @@
 (ns advent-of-code-2024.week2.day12
-  (:require [advent-of-code-2024.utils.board :as b]
-            [advent-of-code-2024.utils.io :as io]
-            [advent-of-code-2024.utils.board :as board]
+  (:require [utils.board :as b]
+            [utils.io :as io]
+            [utils.board :as board]
             [clojure.pprint :as pp]
             [clojure.set :as set]
-            [advent-of-code-2024.utils.algorithms :as algo]))
+            [utils.algorithms :as algo]))
 
 (defn get-all-different-symbols
   "Get all the different symbols found on board.

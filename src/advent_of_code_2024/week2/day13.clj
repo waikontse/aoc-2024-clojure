@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week2.day13
-  (:require [advent-of-code-2024.utils.io :as io]
-            [advent-of-code-2024.utils.algorithms :as algo]
+  (:require [utils.io :as io]
+            [utils.algorithms :as algo]
             [clojure.pprint :as pp]))
 
 ;; Break the 3 lines up

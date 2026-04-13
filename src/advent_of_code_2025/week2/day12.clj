@@ -1,6 +1,6 @@
 (ns advent-of-code-2025.week2.day12
   (:require [clojure.string :as str]
-            [advent-of-code-2024.utils.board :as board]))
+            [utils.board :as board]))
 
 (def example (slurp "./resources/y2025/day12/example.txt"))
 (def input (slurp "./resources/y2025/day12/input.txt"))

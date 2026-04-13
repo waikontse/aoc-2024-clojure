@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week1.day6
-  (:require [advent-of-code-2024.utils.io :as io])
-  (:require [advent-of-code-2024.utils.board :as board]))
+  (:require [utils.io :as io])
+  (:require [utils.board :as board]))
 
 (def obstacle \#)
 (def marked \X)

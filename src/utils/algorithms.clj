@@ -1,5 +1,5 @@
-(ns advent-of-code-2024.utils.algorithms
-  (:require [advent-of-code-2024.utils.board :as board]
+(ns utils.algorithms
+  (:require [utils.board :as board]
             [clojure.math])
   )
 

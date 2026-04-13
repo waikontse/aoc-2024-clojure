@@ -1,5 +1,5 @@
 (ns advent-of-code-2024.week1.day3
-  (:require [advent-of-code-2024.utils.io :as io]))
+  (:require [utils.io :as io]))
 
 (defn categorize-op
   [raw-op]

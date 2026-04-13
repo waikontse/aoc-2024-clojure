@@ -1,5 +1,5 @@
 (ns advent-of-code-2024.week2.day9
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [utils.io :as io]
             [clojure.pprint :as pp]))
 
 (defn get-symbol-for-index

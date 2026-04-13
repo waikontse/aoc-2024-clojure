@@ -1,5 +1,5 @@
 (ns advent-of-code-2025.week1.day4
-  (:require [advent-of-code-2024.utils.board :as board]))
+  (:require [utils.board :as board]))
 
 (def example (slurp "./resources/y2025/day4/example.txt"))
 (def input (slurp "./resources/y2025/day4/input.txt"))

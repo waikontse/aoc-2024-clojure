@@ -1,5 +1,5 @@
 (ns advent-of-code-2024.week1.day7
-  (:require [advent-of-code-2024.utils.io :as io])
+  (:require [utils.io :as io])
   (:require [clojure.math.combinatorics :as combo])
   )
 

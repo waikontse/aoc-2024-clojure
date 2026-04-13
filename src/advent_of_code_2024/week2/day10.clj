@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week2.day10
-  (:require [advent-of-code-2024.utils.io :as io]
-            [advent-of-code-2024.utils.board :as b]
+  (:require [utils.io :as io]
+            [utils.board :as b]
             [clojure.pprint :as pp]))
 
 ;; START - GLOBAL definitions

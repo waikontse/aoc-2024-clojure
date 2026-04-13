@@ -1,4 +1,4 @@
-(ns advent-of-code-2024.utils.board)
+(ns utils.board)
 
 ;; DESCRIPTION
 ;;     Datastructure description
@@ -66,7 +66,7 @@
                          (vec))
         width (count (first raw-lines))
         height (count raw-lines)
-        empty-board (advent-of-code-2024.utils.board/new width height)]
+        empty-board (utils.board/new width height)]
     (update-board-data empty-board flattened-data)))
 
 (defn set-pos

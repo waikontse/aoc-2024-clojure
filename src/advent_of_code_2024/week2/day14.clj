@@ -1,8 +1,8 @@
 (ns advent-of-code-2024.week2.day14
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [utils.io :as io]
             [clojure.pprint :as pp]
-            [advent-of-code-2024.utils.algorithms :as algo]
-            [advent-of-code-2024.utils.board :as b]
+            [utils.algorithms :as algo]
+            [utils.board :as b]
             ))
 
 (def p-or-v #"(p\=|v\=)")

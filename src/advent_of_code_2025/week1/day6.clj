@@ -1,5 +1,5 @@
 (ns advent-of-code-2025.week1.day6
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [utils.io :as io]
             ))
 
 (def example (slurp "./resources/y2025/day6/example.txt"))

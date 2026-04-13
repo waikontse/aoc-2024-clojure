@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week1.day4
-  (:require [advent-of-code-2024.utils.board :as board]
-            [advent-of-code-2024.utils.io :as io]))
+  (:require [utils.board :as board]
+            [utils.io :as io]))
 
 (defn is-target?
   [target suspect]

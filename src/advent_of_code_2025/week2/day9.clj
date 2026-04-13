@@ -1,6 +1,6 @@
 (ns advent-of-code-2025.week2.day9
-  (:require [advent-of-code-2024.utils.algorithms :as algo]
-            [advent-of-code-2024.utils.io :as io]
+  (:require [utils.algorithms :as algo]
+            [utils.io :as io]
             [clojure.math.combinatorics :as combo])
   )
 (def example (slurp "./resources/y2025/day9/example.txt"))

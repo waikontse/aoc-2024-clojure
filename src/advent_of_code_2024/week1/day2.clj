@@ -1,5 +1,5 @@
 (ns advent-of-code-2024.week1.day2
-  (:require [advent-of-code-2024.utils.io :as io]
+  (:require [utils.io :as io]
             [clojure.string :as str]
             [clojure.core.reducers :as r]))
 

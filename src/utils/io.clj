@@ -1,9 +1,9 @@
-(ns advent-of-code-2024.utils.io)
+(ns utils.io)
 
 (defn append-path
   "append the needed path to correctly read the filename"
   [filename]
-  (str "./resources/" filename))
+  (str "./resources/y2024/" filename))
 
 (defn read-input
   "Try to read the file and return the list of lines"

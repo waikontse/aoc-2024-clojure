@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.week3.day15
-  (:require [advent-of-code-2024.utils.io :as io]
-            [advent-of-code-2024.utils.board :as b]
+  (:require [utils.io :as io]
+            [utils.board :as b]
             [clojure.pprint :as pp]))
 
 (defn parse-raw-lines-to-board
