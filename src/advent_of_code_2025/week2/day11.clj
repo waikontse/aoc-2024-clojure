@@ -6,7 +6,6 @@
 
 (def example (slurp "./resources/y2025/day11/example.txt"))
 (def example2 (slurp "./resources/y2025/day11/example2.txt"))
-(def example3 (slurp "./resources/y2025/day11/example3.txt"))
 (def input (slurp "./resources/y2025/day11/input.txt"))
 (def START "you")
 (def OUT "out")
@@ -135,10 +134,6 @@
 
 (time (solve-part-2 example2))
 
-
-(def example-graph (->> (clojure.string/split-lines example2)
-                        (parse-lines)
-                        (to-map)))
 (def input-graph (->> (clojure.string/split-lines input)
                       (parse-lines)
                       (to-map)))
