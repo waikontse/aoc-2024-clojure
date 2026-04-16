@@ -15,8 +15,7 @@
 (defn add-number
   "docstring"
   [left right]
-  (str "[" left "," right "]")
-  )
+  (str "[" left "," right "]"))
 
 (defn reduce-number
   "docstring"
@@ -29,15 +28,23 @@
   [number]
   )
 
+(defn find-all-numbers
+  [number]
+  (let [matcher (re-matcher digits-matcher number)]
+    (loop [results []]
+      (if (.find matcher)
+        (recur (conj results {:match (.group matcher)
+                              :start (.start matcher)
+                              :end (.end matcher)}))
+        results))))
 
 (defn can-split-number?
   [number]
-  (let [matcher (re-matcher digits-matcher number)
-        all-numeric-matches (re-find matcher)
-        _ (println "all-numeric-matches: " all-numeric-matches)]
-    (some #(>= (Integer/parseInt %) 10) all-numeric-matches)))
+  (let [digit-matches (find-all-numbers number)]
+    (->> (map #(:match %) digit-matches)
+         (some #(>= (Integer/parseInt (str %)) 10)))))
 
-(can-split-number? "[[[[0,7],4],[15,[0,13]]],[1,1]]")
+(can-split-number? "[[[[2,7],4],[9,[10,1]]],[1,1]]")
 
 (defn split-number
   "docstring"
