@@ -1,4 +1,4 @@
-(ns advent-of-code-2024.clojureBraveAndTrue.chapter5
+(ns clojureBraveAndTrue.chapter5
   (:require [clojure.string :as s])
   )
 

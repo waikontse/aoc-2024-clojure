@@ -51,6 +51,17 @@
         ]
     (+ x-diff y-diff)))
 
+(defn distance-3d
+  "Compute the distance between 2 3d points. Expected point {:x x :y y :z z}"
+  [from to]
+  (let [x-diff (- (:x to) (:x from))
+        y-diff (- (:y to) (:y from))
+        z-diff (- (:z to) (:z from))
+        sum-squared (+ (* x-diff x-diff) (* y-diff y-diff) (* z-diff z-diff))
+        ]
+    (Math/sqrt sum-squared))
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; START OF linear algebra
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
